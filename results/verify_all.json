@@ -68,12 +68,22 @@
   {
    "name": "log phase4_kernel_gate.json",
    "ok": true,
-   "detail": "0 KiB"
+   "detail": "1 KiB"
   },
   {
    "name": "log phase4_hardware.json",
    "ok": true,
-   "detail": "62 KiB"
+   "detail": "66 KiB"
+  },
+  {
+   "name": "log phase6_realworld.json",
+   "ok": true,
+   "detail": "12 KiB"
+  },
+  {
+   "name": "log phase6_gate.json",
+   "ok": true,
+   "detail": "0 KiB"
   },
   {
    "name": "figure fig_residual_spectrum.pdf",
@@ -123,12 +133,62 @@
   {
    "name": "kernel gate < 1e-05",
    "ok": true,
-   "detail": "worst 3.76e-07 over 16 paths"
+   "detail": "worst 3.76e-07 over 17 paths"
   },
   {
    "name": "L2-fused tiled kernel present in gate",
    "ok": true,
    "detail": "gpu|triton-picfc-tiled rho=0.5"
+  },
+  {
+   "name": "single-launch sequential kernel gated",
+   "ok": true,
+   "detail": "gpu|triton-seq-kernel 3.8e-07"
+  },
+  {
+   "name": "real-stream kernel gate < 1e-5",
+   "ok": true,
+   "detail": "worst 1.47e-07 over 4 paths"
+  },
+  {
+   "name": "Model D beats the unigram byte model",
+   "ok": true,
+   "detail": "BPD 2.6526613235473633 vs unigram 4.508312702178955"
+  },
+  {
+   "name": "Model E explains the next frame",
+   "ok": true,
+   "detail": "R^2 0.9745418400140494"
+  },
+  {
+   "name": "decoupling sweep on both real models",
+   "ok": true,
+   "detail": "D_wiki, E_sensor"
+  },
+  {
+   "name": "D_wiki: >=10 (method,rho) cells",
+   "ok": true,
+   "detail": "24 cells"
+  },
+  {
+   "name": "E_sensor: >=10 (method,rho) cells",
+   "ok": true,
+   "detail": "24 cells"
+  },
+  {
+   "name": "ours@rho=1/4 within 0.5 BPD / 0.15 R^2 of exact",
+   "ok": true,
+   "detail": "worst delta -0.012"
+  },
+  {
+   "name": "GPU speedup > 1 on real streams",
+   "ok": true,
+   "detail": "7.0x, 4.0x"
+  },
+  {
+   "name": "spectrum computed on real streams",
+   "ok": true,
+   "detail": "D_wiki, E_sensor"
   },
   {
    "name": "phase1_isomorphism.json peak RssAnon < 1500 MB",
@@ -151,9 +211,19 @@
    "detail": "1009 MB"
   },
   {
+   "name": "phase6_realworld.json peak RssAnon < 1500 MB",
+   "ok": true,
+   "detail": "324 MB"
+  },
+  {
    "name": "table regeneration runs",
    "ok": true,
    "detail": ""
+  },
+  {
+   "name": "real-stream table regeneration runs",
+   "ok": true,
+   "detail": "valid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\,\"? A raw string is also an option.\n  f\"solve, ${a['solve_ms']:.0f}$--${b['solve_ms']:.0f}$\\,ms at these sizes) is \"\n"
   },
   {
    "name": "bench prose regeneration runs",
@@ -231,6 +301,26 @@
    "detail": ""
   },
   {
+   "name": "table tab_p6_train.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_p6_decouple.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_p6_hw.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table sec_realworld_text.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
    "name": "no placeholders in main.tex",
    "ok": true,
    "detail": ""
@@ -248,12 +338,12 @@
   {
    "name": "paper/main.pdf exists",
    "ok": true,
-   "detail": "251 KiB"
+   "detail": "284 KiB"
   },
   {
    "name": "CM-PiLNN.pdf exists",
    "ok": true,
-   "detail": "251 KiB"
+   "detail": "284 KiB"
   },
   {
    "name": "CM-PiLNN.pdf is the current build",

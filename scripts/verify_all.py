@@ -30,12 +30,14 @@ CKPT = RES / "checkpoints"
 
 JSONS = ["phase1_training.json", "phase1_isomorphism.json", "phase1_spectrum.json",
          "phase2_equivalence.json", "phase2_scan_check.json", "phase3_expressivity.json",
-         "phase3_ridge_gpu.json", "phase4_kernel_gate.json", "phase4_hardware.json"]
+         "phase3_ridge_gpu.json", "phase4_kernel_gate.json", "phase4_hardware.json",
+         "phase6_realworld.json", "phase6_gate.json"]
 CKPTS = ["A_oscillator", "B_parity", "C_largescale"]
 TABLES = ["tab_training.tex", "tab_iso.tex", "tab_p2_A_oscillator.tex", "tab_p2_B_parity.tex",
           "tab_p2_C_largescale.tex", "tab_ridge.tex", "tab_ridge_gpu.tex", "tab_expr.tex", "tab_osc.tex",
           "tab_gate.tex", "tab_amp.tex", "tab_p4_gpu.tex", "tab_p4_cpu.tex",
-          "sec_bench_text.tex"]
+          "sec_bench_text.tex", "tab_p6_train.tex", "tab_p6_decouple.tex", "tab_p6_hw.tex",
+          "sec_realworld_text.tex"]
 RESULT = []
 
 
@@ -97,6 +99,52 @@ def gates():
                 f"worst {worst:.2e} over {len(g['rows'])} paths")
     tiled = [k for k in g["rows"] if "tiled" in k]
     ok &= check("L2-fused tiled kernel present in gate", bool(tiled), ", ".join(tiled))
+    seqk = [k for k in g["rows"] if "seq-kernel" in k]
+    ok &= check("single-launch sequential kernel gated", bool(seqk),
+                ", ".join(f"{k} {g['rows'][k]:.1e}" for k in seqk))
+
+    g6 = load("results/phase6_gate.json")
+    w6 = max(g6["rows"].values())
+    ok &= check("real-stream kernel gate < 1e-5", w6 < g6["threshold"] and g6["pass_"],
+                f"worst {w6:.2e} over {len(g6['rows'])} paths")
+    return ok
+
+
+# --------------------------------------------------------- 4b real-world streams
+def realworld():
+    """R2: the two real-data models must actually beat their trivial baselines and the whole
+    decoupling pipeline (spectrum, decouple, ridge, DAFT, hardware) must be present."""
+    ok = True
+    try:
+        d = load("results/phase6_realworld.json")
+    except Exception:                                        # noqa: BLE001
+        return check("phase6_realworld.json present", False, "missing")
+    tr = d.get("train", {})
+    w = tr.get("D_wiki", {})
+    s_ = tr.get("E_sensor", {})
+    ok &= check("Model D beats the unigram byte model", w.get("bpd", 9) < w.get("bpd_unigram", 0),
+                f"BPD {w.get('bpd')} vs unigram {w.get('bpd_unigram')}")
+    ok &= check("Model E explains the next frame", s_.get("r2", -1) > 0.30, f"R^2 {s_.get('r2')}")
+    dec = {k: v for k, v in d.get("decouple", {}).items() if k != "_memory"}
+    ok &= check("decoupling sweep on both real models", set(dec) >= {"D_wiki", "E_sensor"},
+                ", ".join(sorted(dec)))
+    if set(dec) >= {"D_wiki", "E_sensor"}:
+        for nm, v in dec.items():
+            k = len(v["rows"])
+            ok &= check(f"{nm}: >=10 (method,rho) cells", k >= 10, f"{k} cells")
+        # the paper claims the decoupled model stays usable at rho=1/4
+        best = min(v["rows"][f"ours|0.25"]["delta"] for v in dec.values())
+        ok &= check("ours@rho=1/4 within 0.5 BPD / 0.15 R^2 of exact", best > -0.5,
+                    f"worst delta {best:+.3f}")
+    hw = {k: v for k, v in d.get("hw", {}).items() if k != "_memory"}
+    if hw:
+        sp = [v["rows"].get("gpu|speedup rho=0.25") for v in hw.values()
+              if isinstance(v, dict) and "rows" in v]
+        ok &= check("GPU speedup > 1 on real streams", all(x and x > 1.0 for x in sp),
+                    ", ".join(f"{x:.1f}x" if x else "nan" for x in sp))
+    spg = {k: v for k, v in d.get("spectrum", {}).items() if k != "_memory"}
+    ok &= check("spectrum computed on real streams", set(spg) >= {"D_wiki", "E_sensor"},
+                ", ".join(sorted(spg)))
     return ok
 
 
@@ -131,6 +179,10 @@ def tables():
     r = subprocess.run([sys.executable, str(ROOT / "scripts/make_tables.py")],
                        cwd=ROOT, env=env, capture_output=True, text=True)
     ok &= check("table regeneration runs", r.returncode == 0, (r.stderr or "")[-200:])
+    r = subprocess.run([sys.executable, str(ROOT / "scripts/make_p6_tables.py")],
+                       cwd=ROOT, env=env, capture_output=True, text=True)
+    ok &= check("real-stream table regeneration runs", r.returncode == 0,
+                (r.stderr or "")[-200:])
     r = subprocess.run([sys.executable, str(ROOT / "scripts/make_bench_text.py")],
                        cwd=ROOT, env=env, capture_output=True, text=True)
     ok &= check("bench prose regeneration runs", r.returncode == 0, (r.stderr or "")[-200:])
@@ -175,6 +227,8 @@ def main():
     a = artefacts()
     print("\n2-4. numerical gates")
     g = gates()
+    print("\n4b. real-world streams (R2)")
+    rw = realworld()
     print("\n5. memory budget")
     m = memory()
     print("\n6. tables vs JSON")

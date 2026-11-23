@@ -178,6 +178,54 @@ def _recur(gf, gg, gu, exf, exg, exu, Uf, Ug, Uu, dt, h_out, B, T,
 # and every program; nothing is re-fetched from HBM.
 # --------------------------------------------------------------------------------------
 @triton.jit
+def _seq_l2(gf, gg, gu, UfT, UgT, UuT, dt, h_out, B, T, D, BD: tl.constexpr,
+            TK: tl.constexpr):
+    """Full sequential CfC (rho = 1) in ONE kernel launch, for any width D.
+
+    One program owns one batch row and the whole time loop: the state stays in registers as a
+    BD-wide vector, so no step returns to the host.  Each step builds z_k = U_k h_{t-1} by
+    walking the channel axis in TK-lane tiles and contracting each tile against the matching
+    lanes of the register state (gathered with `tl.gather`, no global round trip).  The host
+    passes the transpose U^T = M, so the contraction is
+
+        z_j = sum_i M[i, j] h_i ,
+
+    which is the same expression the decoupled kernel uses for its hot block --- the only
+    difference is that here the block is the whole state, so every step must stream 3 d^2
+    floats.  That per-step traffic, not the launch overhead, is what pi-CfC removes.
+    """
+    pid = tl.program_id(0)
+    din = tl.arange(0, BD)
+    dmask = din < D
+    H = tl.zeros((BD,), dtype=tl.float32)
+    for t in range(T):
+        base = (pid * T + t) * BD + din
+        sf = tl.zeros((BD,), dtype=tl.float32)
+        sg = tl.zeros((BD,), dtype=tl.float32)
+        su = tl.zeros((BD,), dtype=tl.float32)
+        for k0 in range(0, BD, TK):        # dynamic loop: no 200x unroll at D=2048
+            kk = k0 + tl.arange(0, TK)
+            hsel = tl.gather(H, kk, 0)                      # TK lanes, registers only
+            off = kk[:, None] * BD + din[None, :]
+            m = (kk < D)[:, None] & dmask[None, :]
+            wf = tl.load(UfT + off, mask=m, other=0.0)
+            sf += tl.sum(wf * hsel[:, None], axis=0)
+            wg = tl.load(UgT + off, mask=m, other=0.0)
+            sg += tl.sum(wg * hsel[:, None], axis=0)
+            wu = tl.load(UuT + off, mask=m, other=0.0)
+            su += tl.sum(wu * hsel[:, None], axis=0)
+        zf = tl.load(gf + base, mask=dmask, other=0.0) + sf
+        zg = tl.load(gg + base, mask=dmask, other=0.0) + sg
+        zu = tl.load(gu + base, mask=dmask, other=0.0) + su
+        d = tl.load(dt + pid * T + t)
+        a = tl.exp(-tl.log(1.0 + tl.exp(zf)) * d)
+        g = 1.0 - 2.0 / (1.0 + tl.exp(2.0 * zg))
+        u = 1.0 / (1.0 + tl.exp(-zu))
+        H = a * H + (1.0 - a) * g * u
+        tl.store(h_out + base, H, mask=dmask)
+
+
+@triton.jit
 def _hot_l2(gf, gg, gu, exf, exg, exu, Uf, Ug, Uu, dt, h_out, B, T,
             DH: tl.constexpr, TK: tl.constexpr):
     pid = tl.program_id(0)                       # one batch row
@@ -230,7 +278,7 @@ def _para(model, hbar, order):
 
 
 @torch.no_grad()
-def seq_cfc(model, x, dt, h0=None, mode="exact"):
+def seq_cfc(model, x, dt, h0=None, mode="exact", warps=8, tk=32):
     """Fused sequential Triton CfC in fp32.  mode='exact' or 'pure_linear' (rho=0)."""
     B, T, _ = x.shape
     D = model.D
@@ -249,10 +297,15 @@ def seq_cfc(model, x, dt, h0=None, mode="exact"):
     if mode == "pure_linear":                     # no state feedback -> associative scan
         return seq_linear_scan(gf[:, :, :D], gg[:, :, :D], gu[:, :, :D], dt, h0)
     out = torch.empty(B, T, BD, device=x.device)
-    assert BD <= 64, "Triton sequential baseline: DH <= 64 (shared-memory budget of the 3 U tiles)"
-    _recur[(triton.cdiv(B, BLOCK_B),)](gf, gg, gu, None, None, None, UfT, UgT, UuT,
-                                       dt.reshape(-1), out, B, T, BD, BLOCK_B,
-                                       num_warps=8, num_stages=1)
+    if BD <= 64:
+        # register-dot variant: BB batch rows per program, three d^2 tiles in shared memory
+        _recur[(triton.cdiv(B, BLOCK_B),)](gf, gg, gu, None, None, None, UfT, UgT, UuT,
+                                           dt.reshape(-1), out, B, T, BD, BLOCK_B,
+                                           num_warps=8, num_stages=1)
+    else:
+        # single-launch tiled sequential kernel: works for every width, no python step loop
+        _seq_l2[(B,)](gf, gg, gu, UfT, UgT, UuT, dt.reshape(-1), out, B, T, D, BD,
+                      TK=(tk or 32), num_warps=warps, num_stages=1)
     return out[:, :, :D]
 
 

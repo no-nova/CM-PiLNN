@@ -35,6 +35,17 @@ def main():
                 best, bl = v, k
         return loop, kern, best, bl
 
+    def kseq(r):
+        return r["ms"].get("gpu|triton-seq-kernel")
+
+    def bseq(r):
+        ms = r["ms"]
+        return ms.get("gpu|best-seq") or min(v for v in (ms["gpu|pytorch-seq-cfc"],
+                                                        kseq(r) or 1e9) if v)
+
+    def cell(D, L, B=8):
+        return next((r for r in rows if r["D"] == D and r["L"] == L and r["B"] == B), None)
+
     def cpu(r):
         ms = r["ms"]
         fused = min((v for k, v in ms.items() if "picfc-fused" in k), default=None)
@@ -64,6 +75,27 @@ def main():
                  rf"sequential kernel {f(kern)}~ms, and $\pi$-CfC "
                  rf"($\rho={bl.split('rho=')[1] if bl else '--'}$) {f(best)}~ms: {f(loop/best,1)}$\times$ "
                  rf"and {f(kern/best,1)}$\times$.")
+    r256 = cell(256, 1024)
+    if r256 and kseq(r256):
+        loop, kern, best, bl = gpu(r256)
+        L.append(rf"The same cell against the strongest sequential baseline we could write is "
+                 rf"{f(bseq(r256)/best,1)}$\times$ rather than {f(loop/best,1)}$\times$: the "
+                 rf"single-launch sequential kernel (\code{{\_seq\_l2}}) takes {f(kseq(r256))}~ms "
+                 rf"there, i.e.\ {f(loop/kseq(r256),1)}$\times$ faster than the loop, because at "
+                 rf"$D=256$ the loop really is dominated by its $L$ launches.")
+    r1024 = cell(1024, 1024)
+    if r1024 and kseq(r1024):
+        loop, kern, best, bl = gpu(r1024)
+        kk = kseq(r1024)
+        L.append(rf"A single launch does not, however, fix a bandwidth-bound recurrence: at "
+                 rf"$D=1024$, $L=1024$, $B=8$ the same kernel needs {f(kk)}~ms against "
+                 rf"{f(loop)}~ms for the loop, i.e.\ it is {f(kk/loop,1)}$\times$ \emph{{slower}}. "
+                 rf"One program per batch row gives only $B$-way parallelism, there are no tensor "
+                 rf"cores in the recurrence, and the three $D^2$ matrices ({f(3*r1024["D"]**2*4/2**20,1)}~MB at "
+                 rf"$D=1024$, {f(3*2048**2*4/2**20,1)}~MB at $D=2048$) stop fitting the 32~MB L2 "
+                 rf"at the widest shapes. Launch overhead is therefore not what "
+                 rf"$\pi$-CfC removes at large width; the reduction of the recurrent matrices from "
+                 rf"$3D^2$ to $3(\rho D)^2$ is.")
     if best_gpu[1] is not None:
         r, (loop, kern, best, bl) = best_gpu[1], best_gpu[2]
         L.append(rf"The largest GPU gain appears at $D={r['D']}$, $L={r['L']}$, $B={r['B']}$: "

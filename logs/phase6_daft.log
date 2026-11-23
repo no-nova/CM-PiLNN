@@ -1,0 +1,8 @@
+  [daft] D_wiki rho=0.0625: 3.5815 -> 2.6680
+  [daft] D_wiki rho=0.125: 3.4454 -> 2.2316
+  [daft] D_wiki rho=0.25: 3.2386 -> 1.4619
+  [daft] E_sensor rho=0.0625: 0.8001 -> 0.9827
+  [daft] E_sensor rho=0.125: 0.9097 -> 0.9910
+  [daft] E_sensor rho=0.25: 0.9622 -> 0.9926
+wrote results/phase6_realworld.json
+peak RssAnon MB: 1475.7

@@ -278,6 +278,9 @@ def gate(lib, dev, D=64, T=64, B=3):
     rows["gpu|pytorch-seq-cfc"] = float(rel_l2(loop_seq(pa, m, dt, dev), Href))
     if D <= 64:      # the fused sequential Triton kernel is register-tiled to DH <= 64
         rows["gpu|triton-seq-cfc"] = float(rel_l2(K.seq_cfc(m, x, dt), Href))
+    # R2: the single-launch sequential kernel must be gated at every D (it is the
+    # apples-to-apples kernel baseline for pi-CfC, so it has to be correct there too)
+    rows["gpu|triton-seq-kernel"] = float(rel_l2(K.seq_cfc(m, x, dt), Href))
     with torch.no_grad():      # rho = 0: gates are input-only, so the state is one scan
         a = torch.exp(-F.softplus(pa[0]) * dt)
         bb = (1 - a) * torch.tanh(pa[1]) * torch.sigmoid(pa[2])
@@ -323,11 +326,25 @@ def gate(lib, dev, D=64, T=64, B=3):
                                  pacr[2][:, :, ordcr], hbcr[ordcr], U, dtcr, ordcr,
                                  n_cold, B, T, D)
             rows[f"cpu|avx512-picfc-fused rho={rho}"] = float(rel_l2(fused, Hpc))
+    # tensor-core (TF32) accuracy of the same decoupled forward -- recorded, not gated
+    try:
+        import kernels.triton_picfc as K2
+        with torch.no_grad():
+            _, Hp = m.forward_approx(x, dt, hbar=hbar, order=order, rho=0.25, keep_h=True)
+        torch.backends.cuda.matmul.allow_tf32 = True
+        try:
+            Ht = K2.picfc(m, x, dt, hbar, order, 0.25)
+        finally:
+            torch.backends.cuda.matmul.allow_tf32 = False
+        TF32_ROWS[f"D={D}|picfc rho=0.25"] = float(rel_l2(Ht, Hp))
+    except Exception as exc:                                     # noqa: BLE001
+        TF32_ROWS[f"D={D}|picfc rho=0.25"] = f"error: {type(exc).__name__}: {exc}"
     ok = all(v < GATE for v in rows.values())
     return rows, ok
 
 
 # ----------------------------------------------------------------------------- sweep
+TF32_ROWS = {}       # accuracy of the tensor-core variant; reported, never gated
 _libc = ctypes.CDLL("libc.so.6")
 
 
@@ -378,6 +395,22 @@ def bench_cell(lib, dev, D, T, B):
         estf = 1e3 * (time.perf_counter() - t0)
         out["gpu|fused-seq-cfc"] = time_gpu(lambda: loop_seq_fused(pa, m, dt, dev),
                                             reps=reps_for(estf, budget=1.5), warm=1)
+    # single-launch sequential CfC (no python step loop) --- the apples-to-apples kernel
+    # baseline: both it and pi-CfC run zero python iterations.  We measure it for every D.
+    out["gpu|triton-seq-kernel"] = time_gpu(lambda: K.seq_cfc(m, x, dt, warps=8, tk=32),
+                                            reps=rep_gpu, warm=warm_gpu)
+    out["gpu|best-seq"] = min(out["gpu|pytorch-seq-cfc"],
+                              out.get("gpu|triton-seq-cfc", float("inf")),
+                              out.get("gpu|fused-seq-cfc", float("inf")),
+                              out["gpu|triton-seq-kernel"])
+    # TF32 tensor-core variant of the same decoupled forward: timing only (its accuracy is
+    # measured in the gate and recorded under "tf32"; it does not satisfy the 1e-5 budget)
+    torch.backends.cuda.matmul.allow_tf32 = True
+    try:
+        out["gpu|triton-picfc-tf32 rho=0.25"] = time_gpu(
+            lambda: K.picfc(m, x, dt, hbar, order, 0.25), reps=rep_gpu, warm=warm_gpu)
+    finally:
+        torch.backends.cuda.matmul.allow_tf32 = False
     out["gpu|triton-pure-linear-scan"] = time_gpu(
         lambda: K.seq_cfc(m, x, dt, mode="pure_linear"), reps=20, warm=5)
     # register-resident hot kernel for d_hot <= 64; the degraded hybrid path (Triton cold
@@ -469,7 +502,12 @@ def main():
     for k, v in rows.items():
         print(f"  {k:38s} {v:.2e}  {'ok' if v < GATE else 'FAIL'}", flush=True)
     print(f"  gate: {'PASS' if ok else 'FAIL'}  (threshold {GATE:.0e})", flush=True)
-    json.dump({"rows": rows, "threshold": GATE, "pass": ok},
+    nums = {k: v for k, v in TF32_ROWS.items() if isinstance(v, float)}
+    json.dump({"rows": rows, "threshold": GATE, "pass": ok, "tf32": TF32_ROWS,
+               "tf32_note": ("TF32 tensor-core path, measured for the review: it is faster but "
+                             "does not meet the 1e-5 budget, so every gated row above runs IEEE "
+                             "fp32; the speedup table reports it as an upper bound only."),
+               "tf32_max": (max(nums.values()) if nums else None)},
               open(f"{RES}/phase4_kernel_gate.json", "w"), indent=1)
     if not ok:
         raise SystemExit("numerical gate failed")

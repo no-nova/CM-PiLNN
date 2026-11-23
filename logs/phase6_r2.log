@@ -1,0 +1,87 @@
+/home/user/Downloads/CM-PiLNN/scripts/phase6_realworld_benchmarks.py:256: DeprecationWarning: __array_wrap__ must accept context and return_scalar arguments (positionally) in the future. (Deprecated NumPy 2.0)
+  lj = np.log(J + 1e-30); lv = np.log(v.numpy() + 1e-30)
+  [spectrum] D_wiki: gini 0.515 R(.25) 0.454
+  [spectrum] E_sensor: gini 0.910 R(.25) 0.921
+/home/user/Downloads/.venv-lfm3/lib/python3.14/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+  [gate] D_wiki picfc rho=0.125: 1.26e-07
+  [gate] D_wiki picfc rho=0.25: 1.18e-07
+  [gate] E_sensor picfc rho=0.125: 1.47e-07
+  [gate] E_sensor picfc rho=0.25: 1.28e-07
+  [decouple] D_wiki native|0: rel 6.308e-01 metric 3.8811 (d +1.2285)
+  [decouple] D_wiki ours|0: rel 6.308e-01 metric 3.8811 (d +1.2285)
+  [decouple] D_wiki ours-picard1|0: rel 6.308e-01 metric 3.8811 (d +1.2285)
+  [decouple] D_wiki native|0.0625: rel 6.264e-01 metric 3.8103 (d +1.1576)
+  [decouple] D_wiki random0|0.0625: rel 6.238e-01 metric 3.8178 (d +1.1651)
+  [decouple] D_wiki variance|0.0625: rel 5.840e-01 metric 3.5994 (d +0.9467)
+  [decouple] D_wiki ours|0.0625: rel 5.798e-01 metric 3.5815 (d +0.9288)
+  [decouple] D_wiki ours-picard1|0.0625: rel 4.622e-01 metric 3.1987 (d +0.5460)
+  [decouple] D_wiki native|0.125: rel 6.202e-01 metric 3.7369 (d +1.0842)
+  [decouple] D_wiki random0|0.125: rel 6.159e-01 metric 3.7183 (d +1.0656)
+  [decouple] D_wiki variance|0.125: rel 5.395e-01 metric 3.4540 (d +0.8013)
+  [decouple] D_wiki ours|0.125: rel 5.379e-01 metric 3.4454 (d +0.7927)
+  [decouple] D_wiki ours-picard1|0.125: rel 4.264e-01 metric 3.1323 (d +0.4797)
+  [decouple] D_wiki native|0.25: rel 5.996e-01 metric 3.5935 (d +0.9408)
+  [decouple] D_wiki random0|0.25: rel 5.901e-01 metric 3.5426 (d +0.8899)
+  [decouple] D_wiki variance|0.25: rel 4.801e-01 metric 3.2509 (d +0.5982)
+  [decouple] D_wiki ours|0.25: rel 4.711e-01 metric 3.2386 (d +0.5860)
+  [decouple] D_wiki ours-picard1|0.25: rel 3.540e-01 metric 2.9769 (d +0.3243)
+  [decouple] D_wiki native|0.5: rel 5.197e-01 metric 3.2753 (d +0.6226)
+  [decouple] D_wiki random0|0.5: rel 5.059e-01 metric 3.1946 (d +0.5419)
+  [decouple] D_wiki variance|0.5: rel 3.303e-01 metric 2.9106 (d +0.2580)
+  [decouple] D_wiki ours|0.5: rel 3.225e-01 metric 2.8817 (d +0.2290)
+  [decouple] D_wiki ours-picard1|0.5: rel 2.163e-01 metric 2.7660 (d +0.1133)
+  [decouple] D_wiki native|1: rel 0.000e+00 metric 2.6527 (d +0.0000)
+  [decouple] E_sensor native|0: rel 3.916e-01 metric 0.2739 (d -0.7007)
+  [decouple] E_sensor ours|0: rel 3.916e-01 metric 0.2739 (d -0.7007)
+  [decouple] E_sensor ours-picard1|0: rel 3.916e-01 metric 0.2739 (d -0.7007)
+  [decouple] E_sensor native|0.0625: rel 3.862e-01 metric 0.3828 (d -0.5918)
+  [decouple] E_sensor random0|0.0625: rel 3.899e-01 metric 0.3775 (d -0.5971)
+  [decouple] E_sensor variance|0.0625: rel 3.093e-01 metric 0.7943 (d -0.1802)
+  [decouple] E_sensor ours|0.0625: rel 2.917e-01 metric 0.8001 (d -0.1744)
+  [decouple] E_sensor ours-picard1|0.0625: rel 2.008e-01 metric 0.3230 (d -0.6515)
+  [decouple] E_sensor native|0.125: rel 3.837e-01 metric 0.4820 (d -0.4926)
+  [decouple] E_sensor random0|0.125: rel 3.826e-01 metric 0.5242 (d -0.4503)
+  [decouple] E_sensor variance|0.125: rel 1.905e-01 metric 0.8976 (d -0.0769)
+  [decouple] E_sensor ours|0.125: rel 1.938e-01 metric 0.9097 (d -0.0648)
+  [decouple] E_sensor ours-picard1|0.125: rel 1.144e-01 metric 0.7776 (d -0.1970)
+  [decouple] E_sensor native|0.25: rel 3.558e-01 metric 0.6626 (d -0.3119)
+  [decouple] E_sensor random0|0.25: rel 3.591e-01 metric 0.7120 (d -0.2625)
+  [decouple] E_sensor variance|0.25: rel 1.077e-01 metric 0.9600 (d -0.0146)
+  [decouple] E_sensor ours|0.25: rel 9.620e-02 metric 0.9622 (d -0.0124)
+  [decouple] E_sensor ours-picard1|0.25: rel 4.751e-02 metric 0.9488 (d -0.0257)
+  [decouple] E_sensor native|0.5: rel 3.075e-01 metric 0.8397 (d -0.1349)
+  [decouple] E_sensor random0|0.5: rel 3.060e-01 metric 0.7888 (d -0.1858)
+  [decouple] E_sensor variance|0.5: rel 4.951e-02 metric 0.9722 (d -0.0024)
+  [decouple] E_sensor ours|0.5: rel 4.194e-02 metric 0.9727 (d -0.0018)
+  [decouple] E_sensor ours-picard1|0.5: rel 1.726e-02 metric 0.9726 (d -0.0019)
+  [decouple] E_sensor native|1: rel 0.000e+00 metric 0.9745 (d +0.0000)
+  [ridge] D_wiki ours rho=0: 3.8811 -> 7.7030 (231.3 ms)
+  [ridge] D_wiki variance rho=0: 3.8811 -> 7.7030 (44.0 ms)
+  [ridge] D_wiki ours rho=0.125: 3.4454 -> 7.6148 (44.0 ms)
+  [ridge] D_wiki variance rho=0.125: 3.4540 -> 7.6162 (44.0 ms)
+  [ridge] D_wiki ours rho=0.25: 3.2386 -> 7.5613 (44.0 ms)
+  [ridge] D_wiki variance rho=0.25: 3.2509 -> 7.5635 (44.0 ms)
+  [ridge] D_wiki ours rho=0.5: 2.8817 -> 7.4953 (44.1 ms)
+  [ridge] D_wiki variance rho=0.5: 2.9106 -> 7.4965 (44.0 ms)
+  [ridge] E_sensor ours rho=0: 0.2739 -> 0.9564 (3.6 ms)
+  [ridge] E_sensor variance rho=0: 0.2739 -> 0.9564 (3.6 ms)
+  [ridge] E_sensor ours rho=0.125: 0.9097 -> 0.9902 (3.6 ms)
+  [ridge] E_sensor variance rho=0.125: 0.8976 -> 0.9878 (3.6 ms)
+  [ridge] E_sensor ours rho=0.25: 0.9622 -> 0.9932 (3.6 ms)
+  [ridge] E_sensor variance rho=0.25: 0.9600 -> 0.9933 (3.6 ms)
+  [ridge] E_sensor ours rho=0.5: 0.9727 -> 0.9938 (3.6 ms)
+  [ridge] E_sensor variance rho=0.5: 0.9722 -> 0.9936 (3.6 ms)
+  [daft] D_wiki rho=0.0625: 3.5815 -> 2.6680
+  [daft] D_wiki rho=0.125: 3.4454 -> 2.2316
+  [daft] D_wiki rho=0.25: 3.2386 -> 1.4619
+  [daft] E_sensor rho=0.0625: 0.8001 -> 0.9827
+  [daft] E_sensor rho=0.125: 0.9097 -> 0.9910
+  [daft] E_sensor rho=0.25: 0.9622 -> 0.9926
+  [hw] D_wiki: gpu loop 32.5 kernel-seq 28.2 picfc 4.02 ms; cpu seq 17.1 picfc None
+  [hw] E_sensor: gpu loop 2.4 kernel-seq 1.8 picfc 0.56 ms; cpu seq 1.9 picfc None
+/home/user/Downloads/CM-PiLNN/scripts/phase6_realworld_benchmarks.py:532: UserWarning: linestyle is redundantly defined by the 'linestyle' keyword argument and the fmt string "o-" (-> linestyle='-'). The keyword argument will take precedence.
+  ax[0].plot(np.array(xs)[o], np.array(ys)[o], "o-", ms=3, color=col,
+wrote results/phase6_realworld.json
+wrote figures/fig_realworld_benchmarks.{pdf,png}
+peak RssAnon MB: 1798.0

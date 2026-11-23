@@ -1,0 +1,82 @@
+== numerical gate ==
+/home/user/Downloads/.venv-lfm3/lib/python3.14/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+  gpu|pytorch-seq-cfc                    0.00e+00  ok
+  gpu|triton-seq-cfc                     3.76e-07  ok
+  gpu|triton-pure-linear-scan            0.00e+00  ok
+  cpu|pytorch-seq-cfc                    2.75e-07  ok
+  cpu|avx512-seq-cfc                     1.22e-07  ok
+  gpu|triton-picfc rho=0.0625            3.59e-07  ok
+  cpu|avx512-picfc rho=0.0625            1.14e-07  ok
+  gpu|triton-picfc rho=0.125             3.71e-07  ok
+  cpu|avx512-picfc rho=0.125             1.18e-07  ok
+  gpu|triton-picfc rho=0.25              3.74e-07  ok
+  cpu|avx512-picfc rho=0.25              1.16e-07  ok
+  gpu|triton-picfc-picard1               3.62e-07  ok
+  cpu|avx512-picfc-picard1               1.16e-07  ok
+  gpu|torch-pure-linear-scan             0.00e+00  ok
+  gpu|triton-picfc-tiled rho=0.5         3.28e-07  ok
+  cpu|avx512-picfc-fused rho=0.5         1.24e-07  ok
+  gate: PASS  (threshold 1e-05)
+[1/60] D=256 L=256 B=1  gpu-seq 17.72  gpu-kern 14.58  gpu-picfc0.25 0.67  cpu-seq 1.73  cpu-picfc0.25 2.94
+[2/60] D=256 L=256 B=8  gpu-seq 16.17  gpu-kern 14.20  gpu-picfc0.25 0.76  cpu-seq 2.36  cpu-picfc0.25 8.04
+[3/60] D=256 L=256 B=16  gpu-seq 17.53  gpu-kern 14.55  gpu-picfc0.25 0.91  cpu-seq 3.21  cpu-picfc0.25 13.93
+[4/60] D=256 L=512 B=1  gpu-seq 35.22  gpu-kern 29.94  gpu-picfc0.25 1.21  cpu-seq 3.93  cpu-picfc0.25 4.44
+[5/60] D=256 L=512 B=8  gpu-seq 34.97  gpu-kern 28.37  gpu-picfc0.25 1.44  cpu-seq 4.70  cpu-picfc0.25 14.50
+[6/60] D=256 L=512 B=16  gpu-seq 34.70  gpu-kern 29.72  gpu-picfc0.25 1.85  cpu-seq 6.42  cpu-picfc0.25 33.12
+[7/60] D=256 L=1024 B=1  gpu-seq 64.78  gpu-kern 60.83  gpu-picfc0.25 2.30  cpu-seq 6.99  cpu-picfc0.25 7.64
+[8/60] D=256 L=1024 B=8  gpu-seq 67.74  gpu-kern 57.08  gpu-picfc0.25 2.92  cpu-seq 8.97  cpu-picfc0.25 35.02
+[9/60] D=256 L=1024 B=16  gpu-seq 69.04  gpu-kern 59.42  gpu-picfc0.25 3.44  cpu-seq 9.81  cpu-picfc0.25 58.87
+[10/60] D=256 L=2048 B=1  gpu-seq 132.53  gpu-kern 116.35  gpu-picfc0.25 4.50  cpu-seq 14.32  cpu-picfc0.25 13.34
+[11/60] D=256 L=2048 B=8  gpu-seq 136.98  gpu-kern 116.07  gpu-picfc0.25 5.45  cpu-seq 18.56  cpu-picfc0.25 48.03
+[12/60] D=256 L=2048 B=16  gpu-seq 130.93  gpu-kern 116.73  gpu-picfc0.25 5.48  cpu-seq 17.23  cpu-picfc0.25 41.42
+[13/60] D=256 L=4096 B=1  gpu-seq 267.70  gpu-kern 223.54  gpu-picfc0.25 8.96  cpu-seq 28.47  cpu-picfc0.25 25.48
+[14/60] D=256 L=4096 B=8  gpu-seq 272.77  gpu-kern 241.79  gpu-picfc0.25 9.78  cpu-seq 30.69  cpu-picfc0.25 42.17
+[15/60] D=256 L=4096 B=16  gpu-seq 266.22  gpu-kern 235.16  gpu-picfc0.25 9.57  cpu-seq 32.29  cpu-picfc0.25 41.60
+[16/60] D=512 L=256 B=1  gpu-seq 16.16  gpu-kern 14.00  gpu-picfc0.25 1.62  cpu-seq 7.93  cpu-picfc0.25 6.22
+[17/60] D=512 L=256 B=8  gpu-seq 16.24  gpu-kern 14.02  gpu-picfc0.25 1.89  cpu-seq 8.36  cpu-picfc0.25 17.72
+[18/60] D=512 L=256 B=16  gpu-seq 16.58  gpu-kern 14.64  gpu-picfc0.25 2.26  cpu-seq 11.69  cpu-picfc0.25 37.38
+[19/60] D=512 L=512 B=1  gpu-seq 33.37  gpu-kern 29.40  gpu-picfc0.25 3.09  cpu-seq 15.73  cpu-picfc0.25 9.61
+[20/60] D=512 L=512 B=8  gpu-seq 33.31  gpu-kern 28.94  gpu-picfc0.25 3.72  cpu-seq 18.75  cpu-picfc0.25 39.88
+[21/60] D=512 L=512 B=16  gpu-seq 34.49  gpu-kern 29.77  gpu-picfc0.25 4.23  cpu-seq 20.75  cpu-picfc0.25 50.15
+[22/60] D=512 L=1024 B=1  gpu-seq 67.05  gpu-kern 57.86  gpu-picfc0.25 6.10  cpu-seq 31.61  cpu-picfc0.25 16.23
+[23/60] D=512 L=1024 B=8  gpu-seq 68.02  gpu-kern 58.81  gpu-picfc0.25 7.00  cpu-seq 34.12  cpu-picfc0.25 47.26
+[24/60] D=512 L=1024 B=16  gpu-seq 68.39  gpu-kern 58.10  gpu-picfc0.25 6.97  cpu-seq 37.02  cpu-picfc0.25 50.29
+[25/60] D=512 L=2048 B=1  gpu-seq 132.07  gpu-kern 114.86  gpu-picfc0.25 12.08  cpu-seq 63.31  cpu-picfc0.25 30.51
+[26/60] D=512 L=2048 B=8  gpu-seq 133.90  gpu-kern 118.72  gpu-picfc0.25 12.63  cpu-seq 66.27  cpu-picfc0.25 51.33
+[27/60] D=512 L=2048 B=16  gpu-seq 131.31  gpu-kern 119.33  gpu-picfc0.25 12.56  cpu-seq 63.18  cpu-picfc0.25 48.28
+[28/60] D=512 L=4096 B=1  gpu-seq 261.66  gpu-kern 233.98  gpu-picfc0.25 24.17  cpu-seq 127.31  cpu-picfc0.25 67.00
+[29/60] D=512 L=4096 B=8  gpu-seq 264.92  gpu-kern 230.07  gpu-picfc0.25 24.41  cpu-seq 126.09  cpu-picfc0.25 67.75
+[30/60] D=512 L=4096 B=16  gpu-seq 271.09  gpu-kern 224.89  gpu-picfc0.25 50.52  cpu-seq 124.72  cpu-picfc0.25 62.78
+[31/60] D=1024 L=256 B=1  gpu-seq 25.57  gpu-kern 21.24  gpu-picfc0.25 9.02  cpu-seq 28.28  cpu-picfc0.25 18.29
+[32/60] D=1024 L=256 B=8  gpu-seq 24.29  gpu-kern 20.59  gpu-picfc0.25 10.69  cpu-seq 42.19  cpu-picfc0.25 52.64
+[33/60] D=1024 L=256 B=16  gpu-seq 32.16  gpu-kern 28.03  gpu-picfc0.25 11.33  cpu-seq 48.21  cpu-picfc0.25 62.27
+[34/60] D=1024 L=512 B=1  gpu-seq 39.53  gpu-kern 44.98  gpu-picfc0.25 18.10  cpu-seq 58.09  cpu-picfc0.25 25.05
+[35/60] D=1024 L=512 B=8  gpu-seq 42.73  gpu-kern 35.45  gpu-picfc0.25 19.81  cpu-seq 62.62  cpu-picfc0.25 69.04
+[36/60] D=1024 L=512 B=16  gpu-seq 42.74  gpu-kern 35.69  gpu-picfc0.25 19.73  cpu-seq 69.50  cpu-picfc0.25 69.98
+[37/60] D=1024 L=1024 B=1  gpu-seq 102.30  gpu-kern 91.89  gpu-picfc0.25 35.39  cpu-seq 121.60  cpu-picfc0.25 44.29
+[38/60] D=1024 L=1024 B=8  gpu-seq 70.16  gpu-kern 61.27  gpu-picfc0.25 31.24  cpu-seq 127.39  cpu-picfc0.25 71.82
+[39/60] D=1024 L=1024 B=16  gpu-seq 71.46  gpu-kern 60.64  gpu-picfc0.25 33.86  cpu-seq 119.34  cpu-picfc0.25 64.75
+[40/60] D=1024 L=2048 B=1  gpu-seq 142.94  gpu-kern 118.79  gpu-picfc0.25 37.67  cpu-seq 229.75  cpu-picfc0.25 81.13
+[41/60] D=1024 L=2048 B=8  gpu-seq 132.45  gpu-kern 121.78  gpu-picfc0.25 37.66  cpu-seq 226.87  cpu-picfc0.25 80.74
+[42/60] D=1024 L=2048 B=16  gpu-seq 135.25  gpu-kern 118.40  gpu-picfc0.25 37.64  cpu-seq 227.40  cpu-picfc0.25 82.10
+[43/60] D=1024 L=4096 B=1  gpu-seq 277.10  gpu-kern 232.89  gpu-picfc0.25 76.59  cpu-seq 467.19  cpu-picfc0.25 155.86
+[44/60] D=1024 L=4096 B=8  gpu-seq 286.16  gpu-kern 244.00  gpu-picfc0.25 76.32  cpu-seq 452.26  cpu-picfc0.25 161.01
+[45/60] D=1024 L=4096 B=16  gpu-seq 285.32  gpu-kern 245.48  gpu-picfc0.25 76.41  cpu-seq 461.04  cpu-picfc0.25 153.61
+[46/60] D=2048 L=256 B=1  gpu-seq 40.09  gpu-kern 39.42  gpu-picfc0.25 14.51  cpu-seq 184.07  cpu-picfc0.25 59.01
+[47/60] D=2048 L=256 B=8  gpu-seq 43.77  gpu-kern 40.48  gpu-picfc0.25 15.67  cpu-seq 398.84  cpu-picfc0.25 116.62
+[48/60] D=2048 L=256 B=16  gpu-seq 43.76  gpu-kern 40.48  gpu-picfc0.25 15.67  cpu-seq 414.12  cpu-picfc0.25 98.36
+[49/60] D=2048 L=512 B=1  gpu-seq 80.23  gpu-kern 78.63  gpu-picfc0.25 28.32  cpu-seq 463.65  cpu-picfc0.25 74.46
+[50/60] D=2048 L=512 B=8  gpu-seq 82.63  gpu-kern 79.65  gpu-picfc0.25 28.81  cpu-seq 802.53  cpu-picfc0.25 105.95
+[51/60] D=2048 L=512 B=16  gpu-seq 82.60  gpu-kern 79.63  gpu-picfc0.25 28.81  cpu-seq 777.02  cpu-picfc0.25 93.75
+[52/60] D=2048 L=1024 B=1  gpu-seq 160.44  gpu-kern 157.13  gpu-picfc0.25 55.97  cpu-seq 884.45  cpu-picfc0.25 122.56
+[53/60] D=2048 L=1024 B=8  gpu-seq 160.46  gpu-kern 157.15  gpu-picfc0.25 55.99  cpu-seq 1236.26  cpu-picfc0.25 124.50
+[54/60] D=2048 L=1024 B=16  gpu-seq 160.45  gpu-kern 157.16  gpu-picfc0.25 56.16  cpu-seq 1268.60  cpu-picfc0.25 122.08
+[55/60] D=2048 L=2048 B=1  gpu-seq 320.85  gpu-kern 313.93  gpu-picfc0.25 112.37  cpu-seq 2159.85  cpu-picfc0.25 217.96
+[56/60] D=2048 L=2048 B=8  gpu-seq 320.81  gpu-kern 313.88  gpu-picfc0.25 112.23  cpu-seq 1688.09  cpu-picfc0.25 213.76
+[57/60] D=2048 L=2048 B=16  gpu-seq 321.02  gpu-kern 313.98  gpu-picfc0.25 112.01  cpu-seq 1846.51  cpu-picfc0.25 215.77
+[58/60] D=2048 L=4096 B=1  gpu-seq 641.75  gpu-kern 627.57  gpu-picfc0.25 224.06  cpu-seq 2938.31  cpu-picfc0.25 372.16
+[59/60] D=2048 L=4096 B=8  gpu-seq 641.75  gpu-kern 627.71  gpu-picfc0.25 223.90  cpu-seq 2978.22  cpu-picfc0.25 380.61
+[60/60] D=2048 L=4096 B=16  gpu-seq 641.81  gpu-kern 627.67  gpu-picfc0.25 224.33  cpu-seq 3319.70  cpu-picfc0.25 369.14
+
+peak RssAnon MB: 1572.8

@@ -44,6 +44,14 @@ class MemProbe:
         self._stop.set()
         self._thr.join(timeout=1.0)
 
+    def start(self):
+        self._thr.start()
+        return self
+
+    def stop(self):
+        self._stop.set()
+        self._thr.join(timeout=1.0)
+
     def as_dict(self):
         return {"peak_rss_anon_mb": round(self.peak_anon, 1),
                 "peak_vm_rss_mb": round(self.peak_rss, 1)}

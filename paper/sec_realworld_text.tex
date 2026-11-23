@@ -1,0 +1,11 @@
+Model~D is trained on the first $200$\,k bytes of the WikiText-2 test split and evaluated on the next $16$\,k bytes at the long horizon $L=512$: it reaches $2.653$ bits per byte against a unigram baseline of $4.508$, i.e.\ 41.2\% of the unigram entropy removed, with one byte per step and an event timestep that is doubled at sentence boundaries.
+
+Model~E consumes the real surveillance clip `V1' (216 frames, $16\times16$ grey levels, 30\,fps) and predicts the next frame's $256$ pixel values: held-out $R^2=0.975$ against $0.0015$ MSE for the zero predictor ($0.3719$), with $\Delta t=1/30$\,s fixed by the camera and the frame-to-frame noise of a real sensor present at every step.
+
+At $\rho=1/4$ the decoupled forward with the Jacobian ordering costs $+0.586$ BPD on text and $-0.012$ $R^2$ on frames, against $+0.941$ BPD and $-0.312$ $R^2$ when the hot set is chosen by index order, so the ordering matters on real streams exactly as it does on the synthetic ones.
+
+Closed-form readout recalibration on the decoupled states (fp64, one Cholesky solve, $44$--$4$\,ms at these sizes) is decisive for the regression readout and useless for the classifier: frames go from $0.962$ to $0.993$ $R^2$ at $ho=1/4$, whereas text goes from $3.239$ to $7.561$ BPD. The asymmetry is expected: least squares on one-hot targets is not the maximum-likelihood head, so for a 256-way softmax readout the closed form is the wrong estimator and the trained head already occupies the optimum that the refit approaches from the wrong side. We report the negative result rather than hiding it, and note that the cheap recalibration recipe of Section~\ref{sec:express} transfers to regression heads, not to classifiers.
+
+Five epochs of DAFT on the hot block only moves the text model from $3.445\to2.232$ BPD at $\rho=1/8$ and the frame model from $0.910\to0.991$ $R^2$, so the real streams behave like Parity-Stream and FlipFlop-Reset rather than like the oscillator: the decoupled fit recovers with a short fine-tune, not with a new architecture.
+
+End-to-end, the same Triton path that serves the synthetic sweep gives $7.0\times$/$4.0\times$ over the strongest sequential baseline at $\rho=1/4$ on these two real streams, with the single-launch sequential kernel used as the baseline wherever it beats the PyTorch loop.

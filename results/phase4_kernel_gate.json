@@ -2,6 +2,7 @@
  "rows": {
   "gpu|pytorch-seq-cfc": 0.0,
   "gpu|triton-seq-cfc": 3.7639802721874716e-07,
+  "gpu|triton-seq-kernel": 3.7639802721874716e-07,
   "gpu|triton-pure-linear-scan": 0.0,
   "cpu|pytorch-seq-cfc": 2.749247889790029e-07,
   "cpu|avx512-seq-cfc": 1.2235309188237452e-07,
@@ -18,5 +19,11 @@
   "cpu|avx512-picfc-fused rho=0.5": 1.235396296906476e-07
  },
  "threshold": 1e-05,
- "pass": true
+ "pass": true,
+ "tf32": {
+  "D=64|picfc rho=0.25": 1.9771820268938125e-05,
+  "D=256|picfc rho=0.25": 1.605505882440252e-05
+ },
+ "tf32_note": "TF32 tensor-core path, measured for the review: it is faster but does not meet the 1e-5 budget, so every gated row above runs IEEE fp32; the speedup table reports it as an upper bound only.",
+ "tf32_max": 1.9771820268938125e-05
 }

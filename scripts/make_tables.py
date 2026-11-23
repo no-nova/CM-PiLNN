@@ -8,6 +8,9 @@ OUT = os.environ.get("TAB_OUT", "paper")
 
 
 def w(name, text):
+    # a table emitted inside a font-size group must close that group again
+    if text.lstrip().startswith("{") and text.rstrip().endswith(r"\end{tabular}"):
+        text = text.rstrip() + "}"
     os.makedirs(OUT, exist_ok=True)
     open(os.path.join(OUT, name), "w").write(text)
     print("wrote", name, len(text), "chars")
@@ -79,25 +82,31 @@ def tab_phase2():
 
 # ------------------------------------------------------------------ phase 3
 def tab_ridge():
+    """Pivoted: one row per (checkpoint, method), one column per hot fraction."""
     d = json.load(open(f"{RES}/phase3_expressivity.json"))
-    rows = []
-    for mk in ("A_oscillator", "B_parity", "C_largescale"):
-        for key, v in d["ridge"][mk].items():
-            rows.append((mk, key, v))
+    RHO = ("0", "0.0625", "0.125", "0.25", "0.5")
+    METH = ("pure-linear", "native-prefix", "variance-pi", "ours-jacobian-pi",
+            "ours-jacobian-picard1")
     body = []
-    last = None
-    for mk, key, v in rows:
-        if mk != last:
-            body.append(r"\midrule" if last else "")
-            last = mk
-        meth, rho = key.split("|")
-        body.append(f"{mk.replace('_','-')} & {meth} & {float(rho):g} & "
-                    f"{f(v['metric_default'])} & {f(v['metric_ridge'])} & "
-                    f"{v['delta']:+.3f} & {v['ridge_ms']:.1f} \\\\")
+    for mk in ("A_oscillator", "B_parity", "C_largescale"):
+        tab = d["ridge"][mk]
+        body.append(r"\midrule")
+        for meth in METH:
+            cells = []
+            for rho in RHO:
+                v = tab.get(f"{meth}|{rho}")
+                if not v:
+                    cells.append("--")
+                else:
+                    cells.append(f"{v['metric_default']:.3f}$\\to${v['metric_ridge']:.3f}")
+            if all(c == "--" for c in cells):
+                continue
+            body.append(f"{mk.replace('_','-')} & \\code{{{meth}}} & " + " & ".join(cells) + r" \\")
     w("tab_ridge.tex", "\n".join([
-        r"\begin{tabular}{llrrrrr}", r"\toprule",
-        r"checkpoint & method & $\rho$ & $R^2$ default & $R^2$ ridge & $\Delta$ & solve (ms) \\",
-        r"\midrule", *[b for b in body if b], r"\bottomrule", r"\end{tabular}", ""]))
+        r"{", r"\begin{tabular}{ll" + "c" * len(RHO) + "}", r"\toprule",
+        r"checkpoint & method & " + " & ".join(f"$\\rho={r}$" if r != "0" else "$\\rho=0$"
+                                               for r in RHO) + r" \\",
+        r"\midrule", *[b for b in body if b], r"\bottomrule", r"\end{tabular}}", ""]))
 
 
 def tab_ridge_gpu():
@@ -113,8 +122,9 @@ def tab_ridge_gpu():
         body.append(f"{mk.replace('_','-')} & {meth} & {float(rho):g} & {v['forward_ms']:.0f} & "
                     f"{v['gram_ms']:.2f} & {v['solve_ms']:.1f} & {v['refit_ms']:.1f} \\\\")
     w("tab_ridge_gpu.tex", "\n".join([
+        r"{\scriptsize\setlength{\tabcolsep}{3pt}",
         r"\begin{tabular}{llrrrrr}", r"\toprule",
-        r"checkpoint & method & $\rho$ & rollouts (ms) & Gram (ms, GPU) & fp64 solve (ms, CPU) & refit (ms) \\",
+        r"checkpoint & method & $\rho$ & rollouts (ms) & Gram (ms) & solve (ms) & refit (ms) \\",
         r"\midrule", *[b for b in body if b], r"\bottomrule", r"\end{tabular}", ""]))
 
 
@@ -186,12 +196,16 @@ def tab_p4():
                     best_s, best = s_, (k, v)
         if best is None:
             continue
+        kseq = ms.get("gpu|triton-seq-kernel")
+        bseq = ms.get("gpu|best-seq", min(v for v in (base, kern, kseq) if v))
         gpu.append(f"{r['D']}{mark(r)} & {r['L']} & {base:.2f} & "
-                   f"{kern:.2f} & {best[1]:.2f} & {base/best[1]:.1f}$\\times$ & "
-                   f"{kern/best[1]:.1f}$\\times$ \\\\")
+                   + (f"{kseq:.2f}" if kseq else "--")
+                   + f" & {best[1]:.2f} & {base/best[1]:.1f}$\\times$ & "
+                   f"{bseq/best[1]:.1f}$\\times$ \\\\")
     w("tab_p4_gpu.tex", "\n".join([
         r"\begin{tabular}{rrrrrrr}", r"\toprule",
-        r"$D$ & $L$ & loop & fused & $\pi$-CfC & vs loop & vs fused \\", r"\midrule",
+        r"$D$ & $L$ & loop & 1-launch seq. & $\pi$-CfC & vs loop & vs best seq. \\",
+        r"\midrule",
         *gpu, r"\bottomrule", r"\end{tabular}", ""]))
 
     cpu = []

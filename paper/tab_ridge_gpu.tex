@@ -1,6 +1,7 @@
+{\scriptsize\setlength{\tabcolsep}{3pt}
 \begin{tabular}{llrrrrr}
 \toprule
-checkpoint & method & $\rho$ & rollouts (ms) & Gram (ms, GPU) & fp64 solve (ms, CPU) & refit (ms) \\
+checkpoint & method & $\rho$ & rollouts (ms) & Gram (ms) & solve (ms) & refit (ms) \\
 \midrule
 A-oscillator & native-prefix & 0 & 3539 & 0.38 & 18.0 & 18.4 \\
 A-oscillator & ours-jacobian-pi & 0.5 & 3803 & 0.37 & 6.1 & 6.5 \\
@@ -11,4 +12,4 @@ B-parity & ours-jacobian-pi & 0.5 & 400 & 0.38 & 1.3 & 1.7 \\
 C-largescale & native-prefix & 0 & 3443 & 4.77 & 19.6 & 24.4 \\
 C-largescale & ours-jacobian-pi & 0.5 & 3608 & 6.81 & 14.9 & 21.7 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}

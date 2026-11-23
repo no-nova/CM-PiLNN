@@ -1,0 +1,46 @@
+{
+ "D_wiki": {
+  "kind": "wiki",
+  "D": 512,
+  "B": 8,
+  "T": 512,
+  "rows": {
+   "gpu|loop": 35.39688415527344,
+   "gpu|kernel-seq": 28.121792602539063,
+   "gpu|best-seq": 28.121792602539063,
+   "gpu|picfc rho=0.125": 2.2151615142822267,
+   "gpu|speedup rho=0.125": 12.69514318537233,
+   "gpu|picfc rho=0.25": 4.009299087524414,
+   "gpu|speedup rho=0.25": 7.014141870843359,
+   "cpu|avx512-seq": 18.661328666591242,
+   "cpu|picfc-fused rho=0.125": 17.591362666280475,
+   "cpu|speedup rho=0.125": 1.0608233722769926,
+   "cpu|picfc-fused rho=0.25": 13.498557668450909,
+   "cpu|speedup rho=0.25": 1.3824683440221812
+  }
+ },
+ "E_sensor": {
+  "kind": "sensor",
+  "D": 512,
+  "B": 8,
+  "T": 32,
+  "rows": {
+   "gpu|loop": 2.0105024337768556,
+   "gpu|kernel-seq": 1.8242879867553712,
+   "gpu|best-seq": 1.8242879867553712,
+   "gpu|picfc rho=0.125": 0.4401792049407959,
+   "gpu|speedup rho=0.125": 4.1444211045833885,
+   "gpu|picfc rho=0.25": 0.4515200138092041,
+   "gpu|speedup rho=0.25": 4.040325857020036,
+   "cpu|avx512-seq": 1.220682665007189,
+   "cpu|picfc-fused rho=0.125": 0.7527626657974906,
+   "cpu|speedup rho=0.125": 1.6216036215265475,
+   "cpu|picfc-fused rho=0.25": 0.8670310004769514,
+   "cpu|speedup rho=0.25": 1.4078881427950036
+  }
+ },
+ "_memory": {
+  "peak_rss_anon_mb": 1034.4,
+  "peak_vm_rss_mb": 1551.4
+ }
+}

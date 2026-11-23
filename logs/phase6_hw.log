@@ -1,0 +1,6 @@
+/home/user/Downloads/.venv-lfm3/lib/python3.14/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+  [hw] D_wiki: gpu loop 35.4 kernel-seq 28.1 picfc 4.01 ms; cpu seq 18.7 picfc 13.498557668450909
+  [hw] E_sensor: gpu loop 2.0 kernel-seq 1.8 picfc 0.45 ms; cpu seq 1.2 picfc 0.8670310004769514
+wrote results/phase6_realworld.json
+peak RssAnon MB: 1034.4
