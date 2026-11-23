@@ -262,6 +262,23 @@ def manuscript():
                 f"{final.stat().st_size//1024} KiB" if final.exists() else "missing")
     if final.exists() and pdf.exists():
         ok &= check("CM-PiLNN.pdf is the current build", final.read_bytes() == pdf.read_bytes())
+    # rendering hygiene: no literal backslashes may survive into the typeset text
+    ok &= check("no \\verb in main.tex", "\\verb" not in src)
+    in_code = re.findall(r"\\code\{([^}]*)\}", src)
+    ok &= check("no escaped underscores inside \\code{}",
+                all("\\_" not in c for c in in_code), f"{len(in_code)} code spans")
+    if final.exists():
+        try:
+            import subprocess
+            txt = subprocess.run(["pdftotext", str(final), "-"], capture_output=True,
+                                 text=True, timeout=120).stdout
+        except Exception as e:                      # pdftotext missing: fail loudly
+            txt = ""
+            ok &= check("pdftotext available", False, str(e))
+        if txt:
+            bad = [t for t in txt.split() if "\\" in t]
+            ok &= check("no literal backslashes in the rendered text", not bad,
+                        ", ".join(sorted(set(bad))[:6]) if bad else "clean")
     return ok
 
 

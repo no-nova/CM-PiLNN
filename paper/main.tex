@@ -38,8 +38,8 @@ for Parallel Liquid Neural Networks ($\pi$-CfC)}}
 Closed-form continuous-time (CfC) networks compute a nonlinear recurrence, so their cost is
 $\Theta(L)$ sequential steps. The natural research move is to make most of the state cheap: permute channels
 into a small \emph{hot} set that keeps the full CfC update and a large \emph{cold} set that is linearised and
-advanced by a parallel associative scan. This report builds that architecture (\piCfC) and, more
-importantly, measures it against the baseline it is supposed to replace. Three results stand out.
+advanced by a parallel associative scan. This report builds that architecture (\piCfC{}) and, more
+importantly, measures it against the baseline it is supposed to replace. Four results stand out.
 (i)~The underlying algebraic claim is \emph{exact}: a simultaneous permutation of the gate parameters,
 the recurrent tensor and the readout is a bilateral isomorphism verified to $1.0\times10^{-15}$ in fp64 and
 $4.6\times10^{-7}$ in fp32, while the one-sided variant that a build-time fusion would produce fails by
@@ -61,11 +61,15 @@ replaces. Tensor cores buy $1$--$2\%$ and cost a factor of $60$ in accuracy (TF3
 error to $2\times10^{-5}$), so every gated row stays IEEE fp32. On 16 pinned Zen~5 cores our own AVX-512
 sequential kernel is already $\sim15\times$ faster than the PyTorch loop; merging the four stages of the
 decoupled path into one C entry point makes $\pi$-CfC win 56 of 60 sweep cells (up to $26\times$) against
-that kernel. (iv)~The effect is not an artefact of our generators: on real WikiText bytes and on a real
-video frame stream the Jacobian ordering cuts the decoupling penalty from $+0.94$ to $+0.59$ bits per byte
-and from $-0.31$ to $-0.01$ in $R^2$ at $\rho=1/4$, five epochs of hot-only fine-tuning recover both
-models, and the same kernels deliver $7.0\times$ and $4.0\times$ over the best sequential baseline on the
-two real streams. Every number here comes from a logged run with a numerical gate ($<4.4\times10^{-7}$
+that kernel. (iv)~The effect is not an artefact of our generators: on real WikiText bytes and on ten real
+CIF video clips the Jacobian ordering cuts the zero-shot decoupling penalty at $\rho=1/4$ from $+0.81$ to
+$+0.53$ bits per byte ($+0.29$ with one Picard step) and from $-0.65$ to $-0.02$ in $R^2$; five epochs of
+hot-only fine-tuning recover the byte model to $2.923$ bits per byte against $2.882$ for the exact model on
+the same held-out region, and the closed-form readout recalibration rescues a collapsed pure-linear video
+model from $-2.71$ to $0.831$ in $R^2$. On those streams the same kernels deliver $6.8\times$ and $3.9\times$
+at $\rho=1/4$ ($11.9\times$ and $4.2\times$ at $\rho=1/8$) over the strongest sequential baseline.
+Three contiguous, disjoint regions (70/15/15, split inside every clip) separate training, ranking and
+scoring, so no approximation in this report is measured on data it was fitted to. Every number here comes from a logged run with a numerical gate ($<4.4\times10^{-7}$
 against an fp32 reference, including the single-launch baseline at every width) and an in-process RSS
 probe (peak \code{RssAnon} 1\,009~MB for the model runs; 1\,573~MB for the heaviest benchmark cell, an
 overshoot we report rather than hide).
@@ -88,7 +92,7 @@ $O(\log L)$. Second, the gates are not constant --- but they are \emph{typically
 subset of channels, so the state can be split into a hot part that keeps \eqref{eq:cfc} and a cold part that
 is linearised around its mean trajectory.
 
-That is the \piCfC design: choose a permutation $\pi$, run the first $(1-\rho)D$ channels as a parallel scan,
+That is the \piCfC{} design: choose a permutation $\pi$, run the first $(1-\rho)D$ channels as a parallel scan,
 run the remaining $\rho D$ channels sequentially, and combine them through the recurrent tensor. The design
 raises three questions that this report answers with measurements rather than assertions.
 
@@ -116,7 +120,7 @@ raises three questions that this report answers with measurements rather than as
       baselines --- including a single-launch kernel that runs the whole recurrence inside one program ---
       all gated to $<4.4\times10^{-7}$ relative $L_2$ at every width, with a measured map of where each
       wins, and an explicit statement that single-launch does not rescue a bandwidth-bound recurrence.
-\item Two \emph{real-data} models (WikiText bytes, a real surveillance clip) that reproduce the ordering
+\item Two \emph{real-data} models (WikiText bytes, ten real video clips) that reproduce the ordering
       effect outside our own generators, with the closed-form recalibration's limits measured as well
       (Section~\ref{sec:real}).
 \end{itemize}
@@ -151,9 +155,10 @@ about ordering, not about retraining.
 \section{Isomorphism}\label{sec:iso}
 
 \begin{theorem}[Bilateral channel isomorphism]\label{thm:iso}
-Let $O$ be a permutation matrix, $W_k' = W_kO$, $b_k'=b_kO$, $U_k' = O^\top U_kO$, $W_{\text{out}}' =
-W_{\text{out}}O$, and let $\Phi$ denote one CfC step \eqref{eq:cfc} with the full (hot+cold) update. Then for
-every $x_t$, $\Delta t_t$ and initial state $h_0$,
+Let $O$ be a permutation matrix acting on the \emph{channel} dimension, $W_k' = O^\top W_k$,
+$b_k'=O^\top b_k$, $U_k' = O^\top U_kO$, $W_{\text{out}}' = W_{\text{out}}O$, and let $\Phi$ denote one CfC
+step \eqref{eq:cfc} with the full (hot+cold) update. Then for every $x_t$, $\Delta t_t$ and initial state
+$h_0$,
 \[
 \Phi'(h_0') = O^\top \Phi(h_0), \qquad h_0' = O^\top h_0,
 \]
@@ -161,18 +166,23 @@ and consequently the $L$-step readout satisfies $y'_L = y_L$ exactly in exact ar
 \end{theorem}
 
 \begin{proof}
-Write $h = Oh'$. Each pre-activation is an inner product over channels, so
-$z_k = W_kx + U_kh + b_k = W_kOO^\top x + O^\top U_k' O\,Oh' + b_k'^\top O = O\big(W_k'x + U_k'h' + b_k'\big)$,
-i.e.\ $z'_k = O^\top z_k$ channel-wise. The nonlinearities $\exp(\cdot)$, softplus, $\tanh$ and $\sigma$ act
-element-wise, hence $a'=O^\top a$, $g'=O^\top g$, $u'=O^\top u$ and
+Write $h = Oh'$, i.e.\ $h' = O^\top h$, and use $O O^\top = I$. Each pre-activation is affine in
+$x$ and $h$, so
+\[
+z_k = W_kx + U_kh + b_k = O\big(O^\top W_k x\big) + O\big(O^\top U_k O\big)h' + O\big(O^\top b_k\big)
+    = O\big(W_k'x + U_k'h' + b_k'\big) = O\,z_k',
+\]
+i.e.\ $z'_k = O^\top z_k$ channel-wise (the input $x\in\R^{d_{\text{in}}}$ is untouched by $O$, which acts
+only on the $D$-dimensional state and channel axis). The nonlinearities $\exp(\cdot)$, softplus, $\tanh$ and
+$\sigma$ act element-wise, hence $a'=O^\top a$, $g'=O^\top g$, $u'=O^\top u$ and
 $h'_t = a'\odot h'_{t-1} + (1-a')\odot g'\odot u' = O^\top h_t$ by induction. The readout is
-$y_t = W_{\text{out}}h_t = W_{\text{out}}OO^\top h_t = W_{\text{out}}' h'_t$.
+$y_t = W_{\text{out}}'h'_t = W_{\text{out}}OO^\top h_t = W_{\text{out}}h_t$.
 \end{proof}
 
 The theorem is elementary, and that is the point: it licenses a \emph{compile-time} rewrite (fuse the
 permutation into the weights, then forget it) rather than a runtime index permutation, and it explains
 precisely why the one-sided variant fails. If only the input projection is permuted, then
-$W_k' = W_kO$ but $U_k' \neq O^\top U_kO$, and the recurrent term mixes the wrong channels; the failure is
+$W_k' = O^\top W_k$ but $U_k' \neq O^\top U_kO$, and the recurrent term mixes the wrong channels; the failure is
 $O(1)$, not a rounding effect.
 
 \begin{table}[tbp]
@@ -188,10 +198,14 @@ tensor untouched. Gate: fp64 $<10^{-13}$, fp32 $<10^{-6}$, one-sided $>0.5$
 \end{table}
 
 \paragraph{Spectral structure.} Before asking whether $\rho$-decoupling is accurate, it is worth asking whether
-there is anything to decouple. Table~\ref{tab:iso} is silent on that; the spectrum of $J$ is not. We find Gini
-coefficients of $0.82$/$0.92$/$0.74$ and a top-$25\%$ participation share of $0.90$/$0.98$/$0.83$ for
-A/B/C: the Jacobian is \emph{not} concentrated on a few channels, it is spread across almost all of them.
-The largest single-channel participation of $J$ is $0.037$. \begin{figure}[tbp]
+there is anything to decouple. Table~\ref{tab:iso} is silent on that; the spectrum of $J$ is not. For A/B/C we find Gini
+coefficients of the one-step nonlinear residual $\mathcal{J}_i$ of $0.82$/$0.92$/$0.74$ and a top-$25\%$
+participation share of $0.90$/$0.98$/$0.83$: the residual is strongly concentrated in the top quarter of
+channels (Figure~\ref{fig:spectrum}), which is what makes any decoupling worth attempting at all. But
+concentrating the one-step residual is not sufficient for accuracy at small $\rho$: when the recurrent
+transition sits at the edge of stability ($\rho_J\approx1$, below), the remaining cold residual is amplified
+over long horizons by recurrent cross-channel coupling, which is the mechanism measured in
+Section~\ref{sec:amp} and the reason Table~\ref{tab:p2a} is not flat at $\rho=1/16$. \begin{figure}[tbp]
 \centering
 \includegraphics[width=\textwidth]{../figures/fig_residual_spectrum.pdf}
 \caption{Residual curve $R(\rho)$: the share of the mean step Jacobian's Frobenius mass kept by the hot set,
@@ -201,9 +215,10 @@ for the three checkpoints, against the uniform reference. The three curves diffe
 \label{fig:spectrum}
 \end{figure}
 
-The practical consequence, which the ordering
-experiments confirm, is that \emph{no permutation can concentrate the active set}, because the activity is
-not a property of the channel ordering at all. Mean spectral radius is $0.997/0.992/1.006$
+The practical consequence, which the ordering experiments then quantify
+(Section~\ref{sec:equiv}), is that the \emph{ordering} can only exploit structure that is already there:
+permuting channels cannot create concentration, it can only place the channels the task actually uses into
+the hot set. Mean spectral radius is $0.997/0.992/1.006$
 (max $1.003/1.000/1.014$) --- the trained networks sit at the edge of stability, which is exactly the regime
 where error amplification matters (Section~\ref{sec:amp}).
 
@@ -239,9 +254,10 @@ $T=512$). Lower is better; $1.29$ is the pure-linear endpoint.}
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\textwidth]{../figures/fig_equivalence.pdf}
-\caption{Trajectory relative $L_2$ error versus $\rho$ for the six rules (upper panels: A-oscillator,
-B-parity, C-largescale), and the task metric of the same runs (lower panels). The flat region for
-$\rho<0.25$ is the measured content of \S\ref{sec:equiv}: ordering cannot help until enough channels are hot.}
+\caption{Trajectory relative $L_2$ error versus the hot fraction $\rho$ for the six rules, one panel per
+checkpoint (A-oscillator, B-parity, C-largescale), with the exact model as the dashed line at $10^{-16}$.
+The flat region for $\rho<0.25$ is the measured content of \S\ref{sec:equiv}: ordering cannot help until
+enough channels are hot, and the ranking of orderings is what changes above it.}
 \label{fig:equiv}
 \end{figure}
 
@@ -300,10 +316,11 @@ accumulates it longer, which is why the measured error is flat in $\rho$ for A a
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\textwidth]{../figures/fig_expressivity_and_calibration.pdf}
-\caption{Left: measured trajectory error versus horizon against the two-sided amplification bound of
-\eqref{eq:gain} (solid: measured; dashed/dotted: coherent and incoherent bounds). Middle: task-metric gain
-from the closed-form readout recalibration. Right: the non-$TC^0$ suite, accuracy by hot fraction,
-zero-shot versus after DAFT.}
+\caption{(a)~Measured trajectory error versus horizon for $\rho=1/4$ (dashed) and $\rho=1/2$ (solid),
+in the model's colour, with the coherent bound of eq.~(2) as the dotted red line; the markers are the
+measurement, so the question is whether they sit inside it. (b)~Task-metric gain from the closed-form
+readout recalibration, one line per model and method. (c)~The non-$TC^0$ suite at $\rho=1/8$: held-out
+accuracy after DAFT, by ordering.}
 \label{fig:express}
 \end{figure}
 
@@ -311,8 +328,14 @@ zero-shot versus after DAFT.}
 the state, so after decoupling it can be refit in closed form. We accumulate
 $A=\sum_t \tilde H_t^\top\tilde H_t$ and $r=\sum_t\tilde H_t^\top y_t$ over $N_{\text{cal}}=128$ calibration
 sequences (streamed, never materialised) and solve the ridge system in fp64 with
-$\lambda=10^{-3}\cdot\overline{\mathrm{diag}(A)}$. No gradient step is taken, and the solve costs
-$23.5$~ms for the 256-channel models, $55.0$~ms for \code{A_oscillator}, and $402$--$433$~ms for \code{C_largescale} whose accumulation is $65{,}536\times1024$; the ``$<50$~ms'' target therefore holds for the small models only, and we report the large-model cost as a missed target rather than quoting the best case (Table~\ref{tab:ridge}).
+$\lambda=10^{-3}\cdot\overline{\mathrm{diag}(A)}$. No gradient step is taken. On the host, the solve costs
+$23.5$~ms for \code{B_parity}, $55.0$~ms for \code{A_oscillator}, and $402$--$433$~ms for
+\code{C_largescale} whose accumulation is $65{,}536\times1024$; accumulating the Gram on the GPU and
+sending only the $1024\times1024$ system to the host brings the end-to-end refit to
+\textbf{1.6--24.4~ms} (\code{C_largescale}: Gram $1.7$--$6.8$~ms, host solve $14.9$--$19.6$~ms), which is
+the number Table~\ref{tab:ridgegpu} reports. The ``$<50$~ms'' target therefore holds on the GPU path for all
+three models and on the host only for the small ones; we report the host cost of the large model as a
+missed target rather than quoting the best case (Tables~\ref{tab:ridge} and~\ref{tab:ridgegpu}).
 
 \begin{table}[tbp]
 \centering
@@ -400,7 +423,7 @@ GEMM plus a second scan. Baselines are a PyTorch step loop (input projection hoi
 \paragraph{Closing the $d_{\text{hot}}>64$ regime.} The register kernel above is capped at $d_{\text{hot}}\le64$
 by three $d_{\text{hot}}^2$ fp32 tiles in shared memory; the first version of this work fell back to a
 PyTorch step loop beyond that, which cost one kernel launch per step and collapsed the speedup to
-$1.2$--$1.4\times$. \code{\_hot\_l2} replaces the fallback: one program per batch row keeps the whole
+$1.2$--$1.4\times$. \code{_hot_l2} replaces the fallback: one program per batch row keeps the whole
 $L$-step loop \emph{inside} a single Triton kernel, holds $h$ in registers, and walks the three
 $d_{\text{hot}}^2$ matrices in $32$-wide column tiles, gathering the matching state lanes from the register
 vector itself. At $d_{\text{hot}}=512$ the three weight matrices total $3$~MiB, so they stay resident in the
@@ -411,7 +434,7 @@ every configuration in the sweep except $D=2048$ at $\rho\ge1/2$.
 
 \paragraph{A single-launch sequential baseline (and why it is not a fix).} Comparing a
 single-kernel $\pi$-CfC against an $L$-step Python loop at $D\ge256$ would flatter us, so the
-review's first objection is answered by building the missing baseline: \code{\_seq\_l2} runs the
+review's first objection is answered by building the missing baseline: \code{_seq_l2} runs the
 \emph{entire} sequential CfC recurrence, for every $D\le2048$, inside \emph{one} Triton launch.
 Each program owns one batch row, keeps $h$ in registers as a $B_D$-wide vector, and walks the
 three $d^2$ matrices in $32$-wide column tiles, gathering the matching state lanes with
@@ -429,7 +452,7 @@ launches, it wins by replacing $3D^2$ of recurrent matrices with $3(\rho D)^2$ a
 scan --- a reduction that no amount of launch engineering can imitate.
 
 \paragraph{Tensor cores.} Turning on TF32 for the batched GEMMs of the decoupled forward is
-measured separately (\code{results/phase4\_tf32.json}): it buys $1.01$--$1.02\times$ and moves the
+measured separately (\code{results/phase4_tf32.json}): it buys $1.01$--$1.02\times$ and moves the
 trajectory error from $3.3\times10^{-7}$ to $2.0\times10^{-5}$, i.e.\ it costs a factor of $60$ in
 accuracy to save $1$--$2\%$ of wall time, because the GEMMs are not what the run waits on. It is
 \emph{not} used in any gated row:
@@ -445,7 +468,7 @@ of the $T/64$ chunk summaries, then a carry fix-up. The gate design was itself a
 cold coefficients in Python cost $3.7$~ms at $D{=}256$ because torch's CPU $\tanh/\exp$ are scalar
 ($\sim$3.3~ns each), so the coefficients moved into the kernel. A second round of the same lesson: driving the
 four stages from Python costs $7.5$--$8.4$~ms at $D{=}256$, $L{=}256$ because every stage re-materialises
-permuted views and pays a ctypes crossing, so \code{picfc\_forward\_fused} now executes cold coefficients,
+permuted views and pays a ctypes crossing, so \code{picfc_forward_fused} now executes cold coefficients,
 scan, the exogenous coupling GEMM, the hot recurrence and the scatter \emph{inside} one C call
 (Table~\ref{tab:cpu}).
 
@@ -464,7 +487,7 @@ the same algorithm's PyTorch reference.}
 \centering
 \caption{GPU, $B=8$, fp32, \code{cudaEvent} timing (25 warm-up, 100 reps; cell size reduced automatically
 when one repetition would exceed the timing budget). ``loop'' is the PyTorch step loop, ``1-launch seq.'' the
-single-launch sequential Triton kernel \code{\_seq\_l2} that runs all $L$ steps in one program per batch row;
+single-launch sequential Triton kernel \code{_seq_l2} that runs all $L$ steps in one program per batch row;
 ``vs best seq.'' divides by \emph{whichever sequential baseline is faster at that shape}, which is the only
 honest denominator. $\pi$-CfC is the best decoupled configuration for that shape; its kernel class is named in
 the text: register-resident for $d_{\text{hot}}\le64$, single-launch L2-fused tiled for
@@ -475,9 +498,9 @@ $64<d_{\text{hot}}\le512$, hybrid for larger hot sets (Section~\ref{sec:kernels}
 \end{table}
 \begin{table}[tbp]
 \centering
-\caption{CPU, $B=8$, fp32, \code{OMP\_NUM\_THREADS=16} with \code{OMP\_PLACES=cores},
-\code{OMP\_PROC\_BIND=close} and \code{OMP\_WAIT\_POLICY=passive}. ``seq'' is our AVX-512 sequential kernel;
-$\pi$-CfC is the best of the Python-driven and the single-entry C stages.}
+\caption{CPU, $B=8$, fp32, 16 threads pinned to physical cores with a passive wait policy.
+``seq'' is our AVX-512 sequential kernel; $\pi$-CfC is the best of the Python-driven and the
+single-entry C stages.}
 \label{tab:cpu}
 
 \input{tab_p4_cpu.tex}
@@ -534,7 +557,8 @@ the same Jacobian-concentration statistic used for Models~A--C.}
 \centering
 \caption{Zero-shot decoupling on the real streams. Each cell is the held-out metric with the change
 against the exact model in parentheses (BPD: lower is better; $R^2$: higher is better). ``ours''
-uses the Jacobian ordering and the per-token RMS energy rule with $\alpha=1$; the Picard column
+uses the state-Jacobian ordering $\mathcal{J}_i$ with the mean-state $\bar h$ cold linearisation; the
+Picard column
 spends one extra cold$\to$hot GEMM and one extra scan.}
 \label{tab:p6dec}
 
@@ -554,9 +578,11 @@ cell is a $512$-byte/$32$-frame rollout). ``spd.'' columns divide the faster seq
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=\textwidth]{../figures/fig_realworld_benchmarks.pdf}
-\caption{Real streams. Left: held-out metric against the hot fraction $\rho$ for the five orderings
-(solid: Model~D, dashed: Model~E). Middle: end-to-end GPU speedup over the best sequential baseline.
-Right: Jacobian energy retained by the hot set, against the $1-\rho$ reference.}
+\caption{Real streams. (a)~Model~D: held-out bits per byte against the hot fraction
+$\rho\in\{0,1/16,1/8,1/4,1/2,1\}$ for the five orderings; (b)~Model~E: held-out $R^2$ on the same grid;
+(c)~end-to-end GPU speedup over the strongest sequential baseline; (d)~cumulative share of the Jacobian
+residual $\mathcal{J}_i$ retained by the hot set, against the uniform $\rho$ reference. The dashed line in
+(a,b) is the exact model; no approximation crosses it.}
 \label{fig:p6}
 \end{figure}
 
@@ -591,7 +617,7 @@ because each one changed a published conclusion.
       $2.5\times10^{-1}$ relative error; \code{input_precision="ieee"} plus
       \code{allow_tf32=False} on the reference was also needed, since the reference itself deviated by
       $4\times10^{-5}$ under tf32 and masqueraded as kernel error.
-\item \textbf{Triton assumes contiguous pointers}: passing \code{gf[:, :, :n\_cold]} views produced silent
+\item \textbf{Triton assumes contiguous pointers}: passing \code{gf[:, :, :n_cold]} views produced silent
       garbage; every kernel argument is now \code{.contiguous()}.
 \item \textbf{In-place hot update} in C++: channels updated before their dependents read $h_{t-1}$; fixed by
       computing all three gate vectors into temporaries first ($10$~ms $\to$ $0.6$~ms per call).
@@ -603,7 +629,7 @@ because each one changed a published conclusion.
       along the row tile and silently computed $M^\top h$ instead. Caught by the gate, not by the benchmark:
       the wrong version was also \emph{fast}.
 \item \textbf{Hot-block compaction in the fused C entry} (error $10^{-2}$). The single-entry kernel handed
-      \code{hot\_recur} a pointer into the full matrix (\code{Uf + n\_cold}) although that routine expects a
+      \code{hot_recur} a pointer into the full matrix (\code{Uf + n_cold}) although that routine expects a
       dense $d_{\text{hot}}\times d_{\text{hot}}$ block with stride $d_{\text{hot}}$; the offset \emph{and}
       the stride are both wrong unless the hot-time-hot block is copied out first.
 \item \textbf{Gate that could not run} (crash, not a wrong number). The numerical gate was parameterised over
@@ -646,7 +672,10 @@ is $\rho\lesssim1/4$ rather than $\rho\le64/D$. For stiff oscillatory dynamics w
 recalibrated, and we would not apply the method to a task whose state must survive an arbitrarily long gap
 without a write (only the flip-flop class passes that test here).
 
-\paragraph{Threats to validity.} All tasks are synthetic, and $D\le2048$; the CPU comparison is against our own
+\paragraph{Threats to validity.} Models A--C and the non-$TC^0$ suite are synthetic, while Models D and E
+evaluate two real sequence streams at $D=512$ (WikiText bytes and ten real video clips); the real-stream
+study has one seed per model, so its numbers establish an ordering of methods, not a variance-aware
+leaderboard. $D\le2048$; the CPU comparison is against our own
 AVX-512 sequential kernel, which is a strong but not a vendor-optimal baseline; the GPU picture is
 register-limited by construction; the three checkpoints are single-seed, so the $\pm$ we report is batch noise,
 not training noise.
@@ -658,8 +687,12 @@ not training noise.
 python scripts/phase1_train_and_audit.py          # 3 checkpoints + isomorphism + spectrum
 python scripts/phase2_dynamical_equivalence.py    # 6 rules x 8 rho x 3 models + scan gate
 python scripts/phase3_expressivity_and_calibration.py amp|ridge|expr|osc
+python scripts/phase3_ridge_gpu.py                # GPU-accelerated refit timings
 python scripts/phase4_hardware_benchmarks.py full # 60 cells, gated, RSS-probed
-python scripts/make_tables.py                     # paper tables from results/*.json
+python scripts/phase6_realworld_benchmarks.py split|train|spectrum|gate|decouple|ridge|daft|hw|fig
+python scripts/make_tables.py                    # main tables from results/*.json
+python scripts/make_p6_tables.py                 # real-stream tables + generated prose
+python scripts/verify_all.py                      # 83-gate audit; must print PASS
 \end{verbatim}
 }
 

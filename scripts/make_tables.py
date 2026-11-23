@@ -94,7 +94,7 @@ def tab_ridge():
         for meth in METH:
             cells = []
             for rho in RHO:
-                v = tab.get(f"{meth}|{rho}")
+                v = tab.get(f"{meth}|{rho}") or tab.get(f"{meth}|{float(rho)}")
                 if not v:
                     cells.append("--")
                 else:

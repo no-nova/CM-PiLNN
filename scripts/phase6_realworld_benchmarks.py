@@ -699,7 +699,7 @@ def figures(allj):
             ax[3].plot(sp6[name]["rho_grid"], ret, "o-", ms=3,
                        label=("Model D (Gini %.2f)" if "wiki" in name else "Model E (Gini %.2f)")
                        % sp6[name]["gini"])
-    ax[3].plot([0, 1], [0, 1], "k:", lw=0.8, label=r"$1-\rho$ reference")
+    ax[3].plot([0, 1], [0, 1], "k:", lw=0.8, label=r"uniform $\rho$ reference")
     ax[3].set_xlabel(r"hot fraction $\rho$")
     ax[3].set_ylabel("Jacobian energy retained")
     ax[3].set_title("(d) concentration", fontsize=8.5)

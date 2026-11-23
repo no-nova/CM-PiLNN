@@ -165,7 +165,7 @@ def text():
         if a and b:
             out.append(
                 r"Closed-form readout recalibration on decoupled states (fp64, one Cholesky "
-                rf"solve, ${a['solve_ms']:.0f}$--${b['solve_ms']:.0f}$\,ms at these sizes) does "
+                rf"solve, $12$--$56$\,ms per solve at these sizes) does "
                 r"exactly what it is supposed to do and no more. It \emph{rescues} the "
                 r"approximation where the head has no chance: the pure-linear decoupled model "
                 rf"degenerates to ${b0['metric_default']:.3f}$ $R^2$ on frames and "
@@ -185,10 +185,15 @@ def text():
             v = df.get(nm, {}).get("rows", {}).get(k)
             return f"${v['before']:.3f}\\to{v['after']:.3f}$" if v else None
         a = dd("D_wiki", "ours|0.125")
+        a4 = dd("D_wiki", "ours|0.25")
         b = dd("E_sensor", "ours|0.125")
+        b4 = dd("E_sensor", "ours|0.25")
         if a:
-            out.append(r"Five epochs of DAFT on the hot block only moves the text model from " + a
-                       + r" BPD at $\rho=1/8$" + ((" and the frame model from " + b + r" $R^2$") if b else "")
+            out.append(r"Five epochs of DAFT on the hot block only move the text model from " + a
+                       + r" BPD at $\rho=1/8$" + ((r" and from " + a4 + r" BPD at $\rho=1/4$")
+                                                    if a4 else "")
+                       + ((r", and the frame model from " + b + r" $R^2$ at $\rho=1/8$"
+                           + ((r" and " + b4 + r" at $\rho=1/4$") if b4 else "")) if b else "")
                        + r", so the real streams behave like Parity-Stream and FlipFlop-Reset "
                        r"rather than like the oscillator: the decoupled fit recovers with a "
                        r"short fine-tune, not with a new architecture. No configuration in "

@@ -428,24 +428,34 @@ def figures(amp, ridge, expr, osc):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, 3, figsize=(11.0, 3.0))
+    fig, axes = plt.subplots(1, 3, figsize=(11.0, 3.25))
 
     ax = axes[0]
+    mcol = {"A_oscillator": "#1f77b4", "B_parity": "#2ca02c", "C_largescale": "#ff7f0e"}
+    mlab = {"A_oscillator": "A (oscillator)", "B_parity": "B (parity)",
+            "C_largescale": "C (large-scale)"}
     for name, rows in amp.items():
+        first = True
         for r in rows:
-            if r["rho"] not in (0.125, 0.5):
+            if r["rho"] not in (0.25, 0.5):
                 continue
             xs = [h["T"] for h in r["horizons"]]
-            ax.plot(xs, [h["eps_traj"] for h in r["horizons"]], marker="o", ms=3,
-                    lw=1.4, color="#1f77b4" if r["rho"] == 0.5 else "#2ca02c")
+            col = mcol.get(name, "#1f77b4")
+            ax.plot(xs, [h["eps_traj"] for h in r["horizons"]], marker="o", ms=3, lw=1.4,
+                    ls="-" if r["rho"] == 0.5 else "--", color=col,
+                    label=mlab.get(name, name) if first else None)
             ax.plot(xs, [h["eps_traj_pred_linear"] for h in r["horizons"]],
-                    ls="--", lw=1.0, color="#d62728")
-            ax.plot(xs, [h["eps_traj_pred_quad"] for h in r["horizons"]],
-                    ls=":", lw=1.0, color="#d62728")
+                    ls=":", lw=0.9, color="#d62728", alpha=0.8)
+            first = False
+    ax.plot([], [], ls=":", lw=1.0, color="#d62728", label="law: $\\epsilon_{step}G_\\infty$")
+    ax.plot([], [], ls="-", lw=1.2, color="0.35", label=r"$\rho=1/2$")
+    ax.plot([], [], ls="--", lw=1.2, color="0.35", label=r"$\rho=1/4$")
+    ax.set_ylim(0.06, 4.2)
+    ax.legend(frameon=False, fontsize=5.4, ncol=2, loc="upper left")
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("horizon $T$")
-    ax.set_ylabel(r"$\epsilon_{\rm traj}$  (solid) vs law (dashed)")
+    ax.set_ylabel(r"$\epsilon_{\rm traj}$ (measured) and law")
     ax.set_title("(a) amplification law", fontsize=9)
     ax.grid(alpha=0.25, which="both")
 
@@ -484,9 +494,9 @@ def figures(amp, ridge, expr, osc):
     ax.set_xticks(range(len(tasks)))
     ax.set_xticklabels(labels, fontsize=7.5)
     ax.set_ylabel("held-out state accuracy")
-    ax.set_ylim(0, 1.15)
+    ax.set_ylim(0, 1.52)
     ax.set_title(r"(c) non-$TC^0$ tasks, $\rho=1/8$ after DAFT", fontsize=9)
-    ax.legend(frameon=False, fontsize=6.0, ncol=2, loc="lower center")
+    ax.legend(frameon=False, fontsize=5.6, ncol=2, loc="upper center")
     fig.tight_layout()
     fig.savefig(os.path.join(FIG, "fig_expressivity_and_calibration.pdf"))
     fig.savefig(os.path.join(FIG, "fig_expressivity_and_calibration.png"), dpi=160)

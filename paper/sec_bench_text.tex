@@ -1,6 +1,6 @@
 At $D=256$, $L=1024$, $B=8$ the PyTorch loop takes 67.74~ms, the fused Triton sequential kernel 57.08~ms, and $\pi$-CfC ($\rho=0.0625$) 1.32~ms: 51.3$\times$ and 43.2$\times$.
 
-The same cell against the strongest sequential baseline we could write is 13.1$\times$ rather than 51.3$\times$: the single-launch sequential kernel (\code{\_seq\_l2}) takes 17.31~ms there, i.e.\ 3.9$\times$ faster than the loop, because at $D=256$ the loop really is dominated by its $L$ launches.
+The same cell against the strongest sequential baseline we could write is 13.1$\times$ rather than 51.3$\times$: the single-launch sequential kernel (\code{_seq_l2}) takes 17.31~ms there, i.e.\ 3.9$\times$ faster than the loop, because at $D=256$ the loop really is dominated by its $L$ launches.
 
 A single launch does not, however, fix a bandwidth-bound recurrence: at $D=1024$, $L=1024$, $B=8$ the same kernel needs 253.78~ms against 70.16~ms for the loop, i.e.\ it is 3.6$\times$ \emph{slower}. One program per batch row gives only $B$-way parallelism, there are no tensor cores in the recurrence, and the three $D^2$ matrices (12.0~MB at $D=1024$, 48.0~MB at $D=2048$) stop fitting the 32~MB L2 at the widest shapes. Launch overhead is therefore not what $\pi$-CfC removes at large width; the reduction of the recurrent matrices from $3D^2$ to $3(\rho D)^2$ is.
 
@@ -16,6 +16,6 @@ At $D=2048$, $L=256$ the best split still gives 19.2$\times$; the $d_{\text{hot}
 
 On the CPU, $\pi$-CfC beats our own AVX-512 sequential kernel in 38 of 60 cells; its best margin is at $D=2048$, $L=2048$, $B=1$ (13.30$\times$: 2159.85~ms versus 162.42~ms), while against the PyTorch loop the best cell reaches 19.3$\times$.
 
-Merging the four CPU stages into one C entry point (\code{picfc\_forward\_fused}) removes the Python/ctypes round trips and wins in 55 of 60 CPU cells; the best is $D=2048$, $L=1024$, $B=16$, where it takes 42.38~ms against 1268.60~ms for the AVX-512 sequential kernel (29.93$\times$).
+Merging the four CPU stages into one C entry point (\code{picfc_forward_fused}) removes the Python/ctypes round trips and wins in 55 of 60 CPU cells; the best is $D=2048$, $L=1024$, $B=16$, where it takes 42.38~ms against 1268.60~ms for the AVX-512 sequential kernel (29.93$\times$).
 
 The benchmark process itself peaked at \textbf{1573~MB} of \code{RssAnon} over all 60 cells, against a self-imposed 1\,500~MB budget: 34 of the largest cells exceed one micro-batch of the fp32 activation set and were therefore measured one batch row at a time (marked $^{*}$ in the tables), which keeps the CUDA side inside 8~GB but leaves the host holding one $[1,L,D]$ pre-activation triple plus its CPU mirror. That is a real 7\% overshoot on the largest cell, not a rounding artefact, and it is reported rather than hidden: every other stage of the pipeline stayed under 1\,010~MB.

@@ -80,7 +80,7 @@ def main():
         loop, kern, best, bl = gpu(r256)
         L.append(rf"The same cell against the strongest sequential baseline we could write is "
                  rf"{f(bseq(r256)/best,1)}$\times$ rather than {f(loop/best,1)}$\times$: the "
-                 rf"single-launch sequential kernel (\code{{\_seq\_l2}}) takes {f(kseq(r256))}~ms "
+                 rf"single-launch sequential kernel (\code{{_seq_l2}}) takes {f(kseq(r256))}~ms "
                  rf"there, i.e.\ {f(loop/kseq(r256),1)}$\times$ faster than the loop, because at "
                  rf"$D=256$ the loop really is dominated by its $L$ launches.")
     r1024 = cell(1024, 1024)
@@ -153,7 +153,7 @@ def main():
     if fused_wins:
         r = max(fused_wins, key=lambda r: cpu(r)[1] / cpu(r)[3])
         c = cpu(r)
-        L.append(rf"Merging the four CPU stages into one C entry point (\code{{picfc\_forward\_fused}}) "
+        L.append(rf"Merging the four CPU stages into one C entry point (\code{{picfc_forward_fused}}) "
                  rf"removes the Python/ctypes round trips and wins in {len(fused_wins)} of "
                  rf"{len(fused_cells)} CPU cells; the best is $D={r['D']}$, $L={r['L']}$, $B={r['B']}$, "
                  rf"where it takes {f(c[3])}~ms against {f(c[1])}~ms for the AVX-512 sequential kernel "

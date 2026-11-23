@@ -98,7 +98,7 @@
   {
    "name": "figure fig_expressivity_and_calibration.pdf",
    "ok": true,
-   "detail": "34 KiB"
+   "detail": "38 KiB"
   },
   {
    "name": "figure fig_hardware_speedup.pdf",
@@ -403,17 +403,32 @@
   {
    "name": "paper/main.pdf exists",
    "ok": true,
-   "detail": "291 KiB"
+   "detail": "299 KiB"
   },
   {
    "name": "CM-PiLNN.pdf exists",
    "ok": true,
-   "detail": "291 KiB"
+   "detail": "299 KiB"
   },
   {
    "name": "CM-PiLNN.pdf is the current build",
    "ok": true,
    "detail": ""
+  },
+  {
+   "name": "no \\verb in main.tex",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no escaped underscores inside \\code{}",
+   "ok": true,
+   "detail": "34 code spans"
+  },
+  {
+   "name": "no literal backslashes in the rendered text",
+   "ok": true,
+   "detail": "clean"
   }
  ],
  "failed": [],

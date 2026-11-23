@@ -4,19 +4,22 @@
 checkpoint & method & $\rho=0$ & $\rho=0.0625$ & $\rho=0.125$ & $\rho=0.25$ & $\rho=0.5$ \\
 \midrule
 \midrule
-A-oscillator & \code{native-prefix} & -- & -0.195$\to$0.369 & -0.201$\to$0.371 & -0.218$\to$0.375 & -0.224$\to$0.383 \\
-A-oscillator & \code{variance-pi} & -- & -0.189$\to$0.368 & -0.222$\to$0.368 & -0.227$\to$0.372 & -0.248$\to$0.500 \\
-A-oscillator & \code{ours-jacobian-pi} & -- & -0.197$\to$0.367 & -0.222$\to$0.367 & -0.217$\to$0.372 & -0.265$\to$0.455 \\
-A-oscillator & \code{ours-jacobian-picard1} & -- & -0.333$\to$0.376 & -0.354$\to$0.377 & -0.358$\to$0.381 & -0.367$\to$0.487 \\
+A-oscillator & \code{pure-linear} & -0.182$\to$0.364 & -- & -- & -- & -- \\
+A-oscillator & \code{native-prefix} & -0.182$\to$0.364 & -0.195$\to$0.369 & -0.201$\to$0.371 & -0.218$\to$0.375 & -0.224$\to$0.383 \\
+A-oscillator & \code{variance-pi} & -0.182$\to$0.364 & -0.189$\to$0.368 & -0.222$\to$0.368 & -0.227$\to$0.372 & -0.248$\to$0.500 \\
+A-oscillator & \code{ours-jacobian-pi} & -0.182$\to$0.364 & -0.197$\to$0.367 & -0.222$\to$0.367 & -0.217$\to$0.372 & -0.265$\to$0.455 \\
+A-oscillator & \code{ours-jacobian-picard1} & -0.182$\to$0.364 & -0.333$\to$0.376 & -0.354$\to$0.377 & -0.358$\to$0.381 & -0.367$\to$0.487 \\
 \midrule
-B-parity & \code{native-prefix} & -- & 0.507$\to$0.473 & 0.506$\to$0.483 & 0.505$\to$0.493 & 0.502$\to$0.495 \\
-B-parity & \code{variance-pi} & -- & 0.505$\to$0.484 & 0.507$\to$0.496 & 0.497$\to$0.511 & 0.888$\to$0.889 \\
-B-parity & \code{ours-jacobian-pi} & -- & 0.501$\to$0.493 & 0.543$\to$0.547 & 0.592$\to$0.588 & 0.887$\to$0.890 \\
-B-parity & \code{ours-jacobian-picard1} & -- & 0.508$\to$0.488 & 0.544$\to$0.577 & 0.604$\to$0.587 & 0.887$\to$0.890 \\
+B-parity & \code{pure-linear} & 0.507$\to$0.502 & -- & -- & -- & -- \\
+B-parity & \code{native-prefix} & 0.507$\to$0.502 & 0.507$\to$0.473 & 0.506$\to$0.483 & 0.505$\to$0.493 & 0.502$\to$0.495 \\
+B-parity & \code{variance-pi} & 0.507$\to$0.502 & 0.505$\to$0.484 & 0.507$\to$0.496 & 0.497$\to$0.511 & 0.888$\to$0.889 \\
+B-parity & \code{ours-jacobian-pi} & 0.507$\to$0.502 & 0.501$\to$0.493 & 0.543$\to$0.547 & 0.592$\to$0.588 & 0.887$\to$0.890 \\
+B-parity & \code{ours-jacobian-picard1} & 0.507$\to$0.502 & 0.508$\to$0.488 & 0.544$\to$0.577 & 0.604$\to$0.587 & 0.887$\to$0.890 \\
 \midrule
-C-largescale & \code{native-prefix} & -- & 0.267$\to$0.930 & 0.314$\to$0.934 & 0.399$\to$0.938 & 0.548$\to$0.942 \\
-C-largescale & \code{variance-pi} & -- & 0.305$\to$0.931 & 0.372$\to$0.935 & 0.531$\to$0.937 & 0.750$\to$0.946 \\
-C-largescale & \code{ours-jacobian-pi} & -- & 0.341$\to$0.933 & 0.417$\to$0.936 & 0.525$\to$0.941 & 0.703$\to$0.945 \\
-C-largescale & \code{ours-jacobian-picard1} & -- & 0.630$\to$0.945 & 0.663$\to$0.945 & 0.690$\to$0.946 & 0.767$\to$0.948 \\
+C-largescale & \code{pure-linear} & 0.216$\to$0.918 & -- & -- & -- & -- \\
+C-largescale & \code{native-prefix} & 0.216$\to$0.918 & 0.267$\to$0.930 & 0.314$\to$0.934 & 0.399$\to$0.938 & 0.548$\to$0.942 \\
+C-largescale & \code{variance-pi} & 0.216$\to$0.918 & 0.305$\to$0.931 & 0.372$\to$0.935 & 0.531$\to$0.937 & 0.750$\to$0.946 \\
+C-largescale & \code{ours-jacobian-pi} & 0.216$\to$0.918 & 0.341$\to$0.933 & 0.417$\to$0.936 & 0.525$\to$0.941 & 0.703$\to$0.945 \\
+C-largescale & \code{ours-jacobian-picard1} & 0.216$\to$0.918 & 0.630$\to$0.945 & 0.663$\to$0.945 & 0.690$\to$0.946 & 0.767$\to$0.948 \\
 \bottomrule
 \end{tabular}}
