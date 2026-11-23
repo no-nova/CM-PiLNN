@@ -1,0 +1,112 @@
+== numerical gate ==
+/home/user/Downloads/.venv-lfm3/lib/python3.14/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+  gpu|pytorch-seq-cfc                    0.00e+00  ok
+  gpu|triton-seq-cfc                     3.76e-07  ok
+  gpu|triton-pure-linear-scan            0.00e+00  ok
+  cpu|pytorch-seq-cfc                    2.75e-07  ok
+  cpu|avx512-seq-cfc                     1.22e-07  ok
+  gpu|triton-picfc rho=0.0625            3.59e-07  ok
+  cpu|avx512-picfc rho=0.0625            1.14e-07  ok
+  gpu|triton-picfc rho=0.125             3.71e-07  ok
+  cpu|avx512-picfc rho=0.125             1.18e-07  ok
+  gpu|triton-picfc rho=0.25              3.74e-07  ok
+  cpu|avx512-picfc rho=0.25              1.16e-07  ok
+  gpu|triton-picfc-picard1               3.62e-07  ok
+  cpu|avx512-picfc-picard1               1.16e-07  ok
+  gpu|torch-pure-linear-scan             0.00e+00  ok
+  gpu|triton-picfc-tiled rho=0.5         3.28e-07  ok
+  cpu|avx512-picfc-fused rho=0.5         1.24e-07  ok
+  gate: PASS  (threshold 1e-05)
+[1/60] D=256 L=256 B=1  gpu-seq 18.81  gpu-kern 17.18  gpu-picfc0.25 0.66  cpu-seq 1.78  cpu-picfc0.25 2.88
+[2/60] D=256 L=256 B=8  gpu-seq 18.77  gpu-kern 16.57  gpu-picfc0.25 0.76  cpu-seq 2.18  cpu-picfc0.25 7.92
+[3/60] D=256 L=256 B=16  gpu-seq 19.56  gpu-kern 16.71  gpu-picfc0.25 0.93  cpu-seq 3.11  cpu-picfc0.25 14.22
+[4/60] D=256 L=512 B=1  gpu-seq 37.73  gpu-kern 34.25  gpu-picfc0.25 1.20  cpu-seq 3.91  cpu-picfc0.25 4.26
+[5/60] D=256 L=512 B=8  gpu-seq 39.38  gpu-kern 33.40  gpu-picfc0.25 1.47  cpu-seq 4.21  cpu-picfc0.25 14.64
+[6/60] D=256 L=512 B=16  gpu-seq 38.03  gpu-kern 33.66  gpu-picfc0.25 2.00  cpu-seq 6.29  cpu-picfc0.25 29.18
+[7/60] D=256 L=1024 B=1  gpu-seq 79.21  gpu-kern 71.94  gpu-picfc0.25 2.30  cpu-seq 7.21  cpu-picfc0.25 7.32
+[8/60] D=256 L=1024 B=8  gpu-seq 80.39  gpu-kern 73.12  gpu-picfc0.25 3.06  cpu-seq 8.71  cpu-picfc0.25 31.44
+[9/60] D=256 L=1024 B=16  gpu-seq 79.70  gpu-kern 73.94  gpu-picfc0.25 4.84  cpu-seq 12.71  cpu-picfc0.25 55.81
+[10/60] D=256 L=2048 B=1  gpu-seq 169.94  gpu-kern 155.03  gpu-picfc0.25 4.50  cpu-seq 14.95  cpu-picfc0.25 13.21
+[11/60] D=256 L=2048 B=8  gpu-seq 171.73  gpu-kern 151.46  gpu-picfc0.25 7.36  cpu-seq 19.45  cpu-picfc0.25 56.97
+[12/60] D=256 L=2048 B=16  gpu-seq 179.75  gpu-kern 153.91  gpu-picfc0.25 21.31  cpu-seq 24.76  cpu-picfc0.25 116.68
+[13/60] D=256 L=4096 B=1  gpu-seq 359.71  gpu-kern 316.10  gpu-picfc0.25 9.00  cpu-seq 28.38  cpu-picfc0.25 26.65
+[14/60] D=256 L=4096 B=8  gpu-seq 353.58  gpu-kern 309.57  gpu-picfc0.25 25.17  cpu-seq 36.71  cpu-picfc0.25 118.92
+[15/60] D=256 L=4096 B=16  gpu-seq 370.45  gpu-kern 334.76  gpu-picfc0.25 49.92  cpu-seq 48.15  cpu-picfc0.25 229.30
+[16/60] D=512 L=256 B=1  gpu-seq 20.61  gpu-kern 16.58  gpu-picfc0.25 1.61  cpu-seq 7.94  cpu-picfc0.25 6.08
+[17/60] D=512 L=256 B=8  gpu-seq 19.24  gpu-kern 17.69  gpu-picfc0.25 1.89  cpu-seq 8.60  cpu-picfc0.25 18.10
+[18/60] D=512 L=256 B=16  gpu-seq 20.24  gpu-kern 16.97  gpu-picfc0.25 2.41  cpu-seq 12.10  cpu-picfc0.25 31.64
+[19/60] D=512 L=512 B=1  gpu-seq 39.76  gpu-kern 35.04  gpu-picfc0.25 3.09  cpu-seq 15.35  cpu-picfc0.25 9.62
+[20/60] D=512 L=512 B=8  gpu-seq 38.13  gpu-kern 35.02  gpu-picfc0.25 3.86  cpu-seq 18.16  cpu-picfc0.25 33.14
+[21/60] D=512 L=512 B=16  gpu-seq 38.28  gpu-kern 35.56  gpu-picfc0.25 5.54  cpu-seq 24.62  cpu-picfc0.25 60.40
+[22/60] D=512 L=1024 B=1  gpu-seq 79.92  gpu-kern 73.13  gpu-picfc0.25 6.07  cpu-seq 30.33  cpu-picfc0.25 16.88
+[23/60] D=512 L=1024 B=8  gpu-seq 84.79  gpu-kern 71.37  gpu-picfc0.25 8.84  cpu-seq 37.15  cpu-picfc0.25 63.58
+[24/60] D=512 L=1024 B=16  gpu-seq 81.57  gpu-kern 74.08  gpu-picfc0.25 27.29  cpu-seq 44.35  cpu-picfc0.25 121.86
+[25/60] D=512 L=2048 B=1  gpu-seq 171.08  gpu-kern 156.22  gpu-picfc0.25 12.10  cpu-seq 60.48  cpu-picfc0.25 31.42
+[26/60] D=512 L=2048 B=8  gpu-seq 178.95  gpu-kern 157.79  gpu-picfc0.25 31.05  cpu-seq 71.56  cpu-picfc0.25 130.14
+[27/60] D=512 L=2048 B=16  gpu-seq 181.73  gpu-kern 160.20  gpu-picfc0.25 62.09  cpu-seq 88.72  cpu-picfc0.25 264.97
+[28/60] D=512 L=4096 B=1  gpu-seq 363.91  gpu-kern 321.81  gpu-picfc0.25 24.33  cpu-seq 122.01  cpu-picfc0.25 57.62
+[29/60] D=512 L=4096 B=8  gpu-seq 366.17  gpu-kern 331.84  gpu-picfc0.25 65.45  cpu-seq 147.75  cpu-picfc0.25 260.65
+[30/60] D=512 L=4096 B=16  gpu-seq 358.42  gpu-kern 330.03  gpu-picfc0.25 130.76  cpu-seq 172.71  cpu-picfc0.25 498.68
+[31/60] D=1024 L=256 B=1  gpu-seq 20.12  gpu-kern 16.56  gpu-picfc0.25 4.87  cpu-seq 25.04  cpu-picfc0.25 17.76
+[32/60] D=1024 L=256 B=8  gpu-seq 18.82  gpu-kern 16.70  gpu-picfc0.25 5.77  cpu-seq 33.85  cpu-picfc0.25 42.71
+[33/60] D=1024 L=256 B=16  gpu-seq 20.24  gpu-kern 17.80  gpu-picfc0.25 7.33  cpu-seq 41.60  cpu-picfc0.25 71.26
+[34/60] D=1024 L=512 B=1  gpu-seq 37.83  gpu-kern 33.07  gpu-picfc0.25 9.53  cpu-seq 53.48  cpu-picfc0.25 25.34
+[35/60] D=1024 L=512 B=8  gpu-seq 37.95  gpu-kern 34.76  gpu-picfc0.25 11.95  cpu-seq 67.69  cpu-picfc0.25 73.98
+[36/60] D=1024 L=512 B=16  gpu-seq 40.51  gpu-kern 35.70  gpu-picfc0.25 41.69  cpu-seq 82.11  cpu-picfc0.25 137.16
+[37/60] D=1024 L=1024 B=1  gpu-seq 80.30  gpu-kern 72.21  gpu-picfc0.25 18.87  cpu-seq 104.26  cpu-picfc0.25 40.21
+[38/60] D=1024 L=1024 B=8  gpu-seq 85.05  gpu-kern 74.04  gpu-picfc0.25 42.61  cpu-seq 136.03  cpu-picfc0.25 142.59
+[39/60] D=1024 L=1024 B=16  gpu-seq 88.63  gpu-kern 77.53  gpu-picfc0.25 85.22  cpu-seq 163.07  cpu-picfc0.25 292.59
+[40/60] D=1024 L=2048 B=1  gpu-seq 177.75  gpu-kern 151.00  gpu-picfc0.25 37.70  cpu-seq 211.46  cpu-picfc0.25 70.61
+[41/60] D=1024 L=2048 B=8  gpu-seq 179.51  gpu-kern 159.88  gpu-picfc0.25 86.59  cpu-seq 271.91  cpu-picfc0.25 304.78
+[42/60] D=1024 L=2048 B=16  gpu-seq 189.49  gpu-kern 162.48  gpu-picfc0.25 173.24  cpu-seq 319.74  cpu-picfc0.25 611.67
+[43/60] D=1024 L=4096 B=1  gpu-seq 364.00  gpu-kern 323.05  gpu-picfc0.25 77.02  cpu-seq 425.94  cpu-picfc0.25 134.57
+[44/60] D=1024 L=4096 B=8  gpu-seq 355.69  gpu-kern 329.55  gpu-picfc0.25 173.18  cpu-seq 532.81  cpu-picfc0.25 567.41
+[45/60] D=1024 L=4096 B=16  gpu-seq 378.06  gpu-kern 333.10  gpu-picfc0.25 346.82  cpu-seq 639.96  cpu-picfc0.25 1214.44
+[46/60] D=2048 L=256 B=1  gpu-seq 50.86  gpu-kern 50.24  gpu-picfc0.25 14.68  cpu-seq 194.60  cpu-picfc0.25 52.36
+[47/60] D=2048 L=256 B=8  gpu-seq 57.33  gpu-kern 52.15  gpu-picfc0.25 19.12  cpu-seq 379.49  cpu-picfc0.25 112.47
+[48/60] D=2048 L=256 B=16  gpu-seq 77.24  gpu-kern 100.70  gpu-picfc0.25 62.46  cpu-seq 664.94  cpu-picfc0.25 179.13
+[49/60] D=2048 L=512 B=1  gpu-seq 101.73  gpu-kern 100.22  gpu-picfc0.25 28.56  cpu-seq 390.78  cpu-picfc0.25 73.64
+[50/60] D=2048 L=512 B=8  gpu-seq 114.68  gpu-kern 104.21  gpu-picfc0.25 61.93  cpu-seq 740.43  cpu-picfc0.25 193.15
+[51/60] D=2048 L=512 B=16  gpu-seq 154.50  gpu-kern 201.32  gpu-picfc0.25 123.82  cpu-seq 1339.43  cpu-picfc0.25 347.12
+[52/60] D=2048 L=1024 B=1  gpu-seq 208.03  gpu-kern 200.33  gpu-picfc0.25 56.37  cpu-seq 764.18  cpu-picfc0.25 113.32
+[53/60] D=2048 L=1024 B=8  gpu-seq 229.40  gpu-kern 207.57  gpu-picfc0.25 123.78  cpu-seq 1492.94  cpu-picfc0.25 368.52
+[54/60] D=2048 L=1024 B=16  gpu-seq 309.34  gpu-kern 402.44  gpu-picfc0.25 247.57  cpu-seq 2635.39  cpu-picfc0.25 653.88
+[55/60] D=2048 L=2048 B=1  gpu-seq 420.46  gpu-kern 406.95  gpu-picfc0.25 112.74  cpu-seq 1657.27  cpu-picfc0.25 192.13
+[56/60] D=2048 L=2048 B=8  gpu-seq 469.31  gpu-kern 426.25  gpu-picfc0.25 245.87  cpu-seq 2997.42  cpu-picfc0.25 724.58
+[57/60] D=2048 L=2048 B=16  gpu-seq 630.03  gpu-kern 804.53  gpu-picfc0.25 491.36  cpu-seq 5502.50  cpu-picfc0.25 1374.75
+[58/60] D=2048 L=4096 B=1  gpu-seq 857.83  gpu-kern 845.64  gpu-picfc0.25 225.79  cpu-seq 3130.19  cpu-picfc0.25 356.49
+[59/60] D=2048 L=4096 B=8  gpu-seq 956.76  gpu-kern 865.21  gpu-picfc0.25 488.68  cpu-seq 6194.62  cpu-picfc0.25 1308.64
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I20261123 13:43:27.513048 140323823721408 CUDACachingAllocator.cpp:4092] memory allocation failed with OOM on device 0 while trying to allocate 536870912 bytes (free: 272367616, total: 8145141760).
+I20261123 13:43:27.577324 140323823721408 CUDACachingAllocator.cpp:4092] memory allocation failed with OOM on device 0 while trying to allocate 536870912 bytes (free: 272367616, total: 8145141760).
+I20261123 13:43:27.577396 140323823721408 CUDACachingAllocator.cpp:4092] memory allocation failed with OOM on device 0 while trying to allocate 536870912 bytes (free: 272367616, total: 8145141760).
+Traceback (most recent call last):
+  File "/home/user/Downloads/CM-PiLNN/scripts/phase4_hardware_benchmarks.py", line 458, in main
+    out = bench_cell(lib, dev, D, T, B)
+  File "/home/user/Downloads/CM-PiLNN/scripts/phase4_hardware_benchmarks.py", line 345, in bench_cell
+    out["gpu|triton-pure-linear-scan"] = time_gpu(
+                                         ~~~~~~~~^
+        lambda: K.seq_cfc(m, x, dt, mode="pure_linear"), reps=20, warm=5)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Downloads/CM-PiLNN/scripts/phase4_hardware_benchmarks.py", line 231, in time_gpu
+    fn()
+    ~~^^
+  File "/home/user/Downloads/CM-PiLNN/scripts/phase4_hardware_benchmarks.py", line 346, in <lambda>
+    lambda: K.seq_cfc(m, x, dt, mode="pure_linear"), reps=20, warm=5)
+            ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 158, in no_grad
+    return func(*args, **kwargs)
+  File "/home/user/Downloads/CM-PiLNN/kernels/triton_picfc.py", line 250, in seq_cfc
+    return seq_linear_scan(gf[:, :, :D], gg[:, :, :D], gu[:, :, :D], dt, h0)
+  File "/usr/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 158, in no_grad
+    return func(*args, **kwargs)
+  File "/home/user/Downloads/CM-PiLNN/kernels/triton_picfc.py", line 265, in seq_linear_scan
+    return scan_torch(a, b, h0)
+  File "/home/user/Downloads/CM-PiLNN/kernels/triton_picfc.py", line 275, in scan_torch
+    Bb = Bb + A * B_sh
+         ~~~^~~~~~~~~~
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a total capacity of 7.59 GiB of which 259.75 MiB is free. Including non-PyTorch memory, this process has 7.30 GiB memory in use. Of the allocated memory 6.64 GiB is allocated by PyTorch, and 449.24 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+[60/60] D=2048 L=4096 B=16  ERROR OutOfMemoryError: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a 
+
+peak RssAnon MB: 5564.0

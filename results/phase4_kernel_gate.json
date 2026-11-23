@@ -1,0 +1,22 @@
+{
+ "rows": {
+  "gpu|pytorch-seq-cfc": 0.0,
+  "gpu|triton-seq-cfc": 3.7639802721874716e-07,
+  "gpu|triton-pure-linear-scan": 0.0,
+  "cpu|pytorch-seq-cfc": 2.749247889790029e-07,
+  "cpu|avx512-seq-cfc": 1.2235309188237452e-07,
+  "gpu|triton-picfc rho=0.0625": 3.5920424729083844e-07,
+  "cpu|avx512-picfc rho=0.0625": 1.1389414770742983e-07,
+  "gpu|triton-picfc rho=0.125": 3.713015956944498e-07,
+  "cpu|avx512-picfc rho=0.125": 1.1790365013576281e-07,
+  "gpu|triton-picfc rho=0.25": 3.7383926395747524e-07,
+  "cpu|avx512-picfc rho=0.25": 1.1584038175295828e-07,
+  "gpu|triton-picfc-picard1": 3.6176001771190556e-07,
+  "cpu|avx512-picfc-picard1": 1.158583702015588e-07,
+  "gpu|torch-pure-linear-scan": 0.0,
+  "gpu|triton-picfc-tiled rho=0.5": 3.280823436451982e-07,
+  "cpu|avx512-picfc-fused rho=0.5": 1.235396296906476e-07
+ },
+ "threshold": 1e-05,
+ "pass": true
+}

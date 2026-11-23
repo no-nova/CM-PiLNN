@@ -1,0 +1,21 @@
+# build / interpreter caches
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.o
+*.out
+
+# transient benchmark state (a superseded checkpoint of the sweep)
+results/*.partial
+logs/*.tmp
+
+# LaTeX intermediates (the PDFs themselves are tracked)
+paper/*.aux
+paper/*.log
+paper/*.toc
+paper/*.spl
+.texput.log
+
+# local editor / OS noise
+.DS_Store
+.vscode/

@@ -1,0 +1,19 @@
+A_oscillator: amplification law (0s)
+  rho=0.000 n_cold= 256 eps_step local/exact=8.98e-02/1.32e-01 abar=0.943 G_inf=17.4 eps_traj(T=512)=1.072 bounds=[0.269,1.566] in
+  rho=0.062 n_cold= 240 eps_step local/exact=8.48e-02/1.12e-01 abar=0.944 G_inf=17.7 eps_traj(T=512)=1.094 bounds=[0.256,1.502] in
+  rho=0.125 n_cold= 224 eps_step local/exact=7.48e-02/9.83e-02 abar=0.944 G_inf=17.9 eps_traj(T=512)=1.131 bounds=[0.227,1.343] in
+  rho=0.250 n_cold= 192 eps_step local/exact=7.01e-02/8.04e-02 abar=0.946 G_inf=18.4 eps_traj(T=512)=1.145 bounds=[0.215,1.287] in
+  rho=0.500 n_cold= 128 eps_step local/exact=5.86e-02/5.19e-02 abar=0.947 G_inf=19.0 eps_traj(T=512)=1.179 bounds=[0.183,1.115] OUT
+B_parity: amplification law (0s)
+  rho=0.000 n_cold= 256 eps_step local/exact=3.07e-01/5.43e-01 abar=0.746 G_inf=3.9 eps_traj(T=512)=0.772 bounds=[0.461,1.208] in
+  rho=0.062 n_cold= 240 eps_step local/exact=2.49e-01/3.98e-01 abar=0.771 G_inf=4.4 eps_traj(T=512)=0.773 bounds=[0.391,1.086] in
+  rho=0.125 n_cold= 224 eps_step local/exact=2.19e-01/3.23e-01 abar=0.788 G_inf=4.7 eps_traj(T=512)=0.797 bounds=[0.356,1.034] in
+  rho=0.250 n_cold= 192 eps_step local/exact=1.49e-01/1.97e-01 abar=0.825 G_inf=5.7 eps_traj(T=512)=0.803 bounds=[0.263,0.849] in
+  rho=0.500 n_cold= 128 eps_step local/exact=3.93e-02/4.22e-02 abar=0.886 G_inf=8.8 eps_traj(T=512)=0.462 bounds=[0.085,0.344] OUT
+C_largescale: amplification law (1s)
+  rho=0.000 n_cold=1024 eps_step local/exact=2.13e-01/1.34e-01 abar=0.931 G_inf=14.6 eps_traj(T=1024)=0.925 bounds=[0.586,3.107] in
+  rho=0.062 n_cold= 960 eps_step local/exact=1.63e-01/1.06e-01 abar=0.936 G_inf=15.7 eps_traj(T=1024)=0.917 bounds=[0.466,2.573] in
+  rho=0.125 n_cold= 896 eps_step local/exact=1.32e-01/9.02e-02 abar=0.940 G_inf=16.7 eps_traj(T=1024)=0.900 bounds=[0.386,2.197] in
+  rho=0.250 n_cold= 768 eps_step local/exact=9.58e-02/6.83e-02 abar=0.945 G_inf=18.3 eps_traj(T=1024)=0.846 bounds=[0.294,1.753] in
+  rho=0.500 n_cold= 512 eps_step local/exact=5.57e-02/4.25e-02 abar=0.951 G_inf=20.5 eps_traj(T=1024)=0.610 bounds=[0.181,1.143] in
+memory: {'peak_rss_anon_mb': 914.1, 'peak_vm_rss_mb': 1344.3} | results -> results/phase3_expressivity.json

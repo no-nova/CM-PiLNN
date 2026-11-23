@@ -1,0 +1,17 @@
+At $D=256$, $L=1024$, $B=8$ the PyTorch loop takes 64.50~ms, the fused Triton sequential kernel 55.83~ms, and $\pi$-CfC ($\rho=0.0625$) 1.47~ms: 43.7$\times$ and 37.9$\times$.
+
+The largest GPU gain appears at $D=256$, $L=4096$, $B=1$: 109.2$\times$ over the loop and 94.9$\times$ over the fused sequential kernel ($\rho=0.0625$, register-resident kernel).
+
+At $D=512$ the hot set is $d_{\text{hot}}=32$, so the register-resident kernel handles the whole time loop in one launch: 2.53~ms versus 65.38~ms for the loop (25.8$\times$).
+
+At $D=1024$ the hot set is $d_{\text{hot}}=64$, so the register-resident kernel handles the whole time loop in one launch: 3.31~ms versus 64.56~ms for the loop (19.5$\times$).
+
+At a fixed budget of $\rho=1/4$, which is the operating point the accuracy study recommends, the speedup over the loop is uniform across sequence lengths ($D=256$: 21.1--26.9$\times$, $D=512$: 8.5--10.7$\times$, $D=1024$: 2.8--3.5$\times$, $D=2048$: 3.4--3.6$\times$), handled by the L2-fused tiled kernel. Only the $d_{\text{hot}}=512$ rows ($D=1024$, $\rho=1/2$) stay at parity, because a 512-wide register tile doubles the per-step gather work.
+
+At $D=2048$, $L=256$ the best split still gives 20.2$\times$; the $d_{\text{hot}}>512$ rows are the only ones that fall back to the hybrid path, and they are labelled as such in the table.
+
+On the CPU, $\pi$-CfC beats our own AVX-512 sequential kernel in 40 of 60 cells; its best margin is at $D=2048$, $L=4096$, $B=16$ (11.86$\times$: 3183.33~ms versus 268.34~ms), while against the PyTorch loop the best cell reaches 15.4$\times$.
+
+Merging the four CPU stages into one C entry point (\code{picfc\_forward\_fused}) removes the Python/ctypes round trips and wins in 56 of 60 CPU cells; the best is $D=2048$, $L=512$, $B=8$, where it takes 26.44~ms against 687.90~ms for the AVX-512 sequential kernel (26.02$\times$).
+
+The benchmark process itself peaked at \textbf{1609~MB} of \code{RssAnon} over all 60 cells, against a self-imposed 1\,500~MB budget: 34 of the largest cells exceed one micro-batch of the fp32 activation set and were therefore measured one batch row at a time (marked $^{*}$ in the tables), which keeps the CUDA side inside 8~GB but leaves the host holding one $[1,L,D]$ pre-activation triple plus its CPU mirror. That is a real 7\% overshoot on the largest cell, not a rounding artefact, and it is reported rather than hidden: every other stage of the pipeline stayed under 1\,010~MB.

@@ -1,0 +1,39 @@
+\begin{tabular}{llrrrr}
+\toprule
+task & ordering & $\rho$ & acc.\ zero-shot & acc.\ after DAFT & DAFT (s) \\
+\midrule
+\midrule
+\multicolumn{6}{l}{\emph{Parity-Stream} ($L=256$)} $\quad$ full CfC: \textbf{1.000} \\
+Parity-Stream & ours-jacobian & 0.0625 & 0.506 & 0.760 & 11.0 \\
+Parity-Stream & variance & 0.0625 & 0.506 & 0.520 & 10.8 \\
+Parity-Stream & random & 0.0625 & 0.498 & 0.502 & 10.6 \\
+Parity-Stream & ours-jacobian & 0.125 & 0.519 & 1.000 & 10.6 \\
+Parity-Stream & variance & 0.125 & 0.505 & 0.519 & 10.5 \\
+Parity-Stream & random & 0.125 & 0.506 & 0.499 & 10.8 \\
+Parity-Stream & ours-jacobian & 0.25 & 1.000 & 1.000 & 10.2 \\
+Parity-Stream & variance & 0.25 & 0.514 & 1.000 & 10.2 \\
+Parity-Stream & random & 0.25 & 0.504 & 0.509 & 10.2 \\
+\midrule
+\multicolumn{6}{l}{\emph{Modulo-3 Counter} ($L=256$)} $\quad$ full CfC: \textbf{1.000} \\
+Modulo-3 Counter & ours-jacobian & 0.0625 & 0.324 & 0.344 & 10.4 \\
+Modulo-3 Counter & variance & 0.0625 & 0.327 & 0.340 & 10.5 \\
+Modulo-3 Counter & random & 0.0625 & 0.322 & 0.339 & 10.5 \\
+Modulo-3 Counter & ours-jacobian & 0.125 & 0.325 & 0.341 & 10.0 \\
+Modulo-3 Counter & variance & 0.125 & 0.333 & 0.337 & 10.1 \\
+Modulo-3 Counter & random & 0.125 & 0.324 & 0.337 & 10.1 \\
+Modulo-3 Counter & ours-jacobian & 0.25 & 0.366 & 0.540 & 10.0 \\
+Modulo-3 Counter & variance & 0.25 & 0.362 & 0.394 & 10.1 \\
+Modulo-3 Counter & random & 0.25 & 0.327 & 0.345 & 9.9 \\
+\midrule
+\multicolumn{6}{l}{\emph{FlipFlop-Reset} ($L=256$)} $\quad$ full CfC: \textbf{1.000} \\
+FlipFlop-Reset & ours-jacobian & 0.0625 & 1.000 & 1.000 & 10.4 \\
+FlipFlop-Reset & variance & 0.0625 & 1.000 & 1.000 & 10.4 \\
+FlipFlop-Reset & random & 0.0625 & 0.680 & 0.997 & 10.5 \\
+FlipFlop-Reset & ours-jacobian & 0.125 & 1.000 & 1.000 & 10.1 \\
+FlipFlop-Reset & variance & 0.125 & 0.999 & 1.000 & 10.2 \\
+FlipFlop-Reset & random & 0.125 & 0.680 & 1.000 & 10.7 \\
+FlipFlop-Reset & ours-jacobian & 0.25 & 1.000 & 1.000 & 10.1 \\
+FlipFlop-Reset & variance & 0.25 & 0.994 & 1.000 & 10.3 \\
+FlipFlop-Reset & random & 0.25 & 0.749 & 1.000 & 10.6 \\
+\bottomrule
+\end{tabular}

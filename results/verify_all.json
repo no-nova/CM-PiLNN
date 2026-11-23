@@ -1,0 +1,266 @@
+{
+ "checks": [
+  {
+   "name": "checkpoint A_oscillator.pt",
+   "ok": true,
+   "detail": "0.81 MB"
+  },
+  {
+   "name": "checkpoint A_oscillator_eval.pt",
+   "ok": true,
+   "detail": "0.17 MB"
+  },
+  {
+   "name": "checkpoint B_parity.pt",
+   "ok": true,
+   "detail": "0.81 MB"
+  },
+  {
+   "name": "checkpoint B_parity_eval.pt",
+   "ok": true,
+   "detail": "0.10 MB"
+  },
+  {
+   "name": "checkpoint C_largescale.pt",
+   "ok": true,
+   "detail": "12.68 MB"
+  },
+  {
+   "name": "checkpoint C_largescale_eval.pt",
+   "ok": true,
+   "detail": "0.43 MB"
+  },
+  {
+   "name": "log phase1_training.json",
+   "ok": true,
+   "detail": "5 KiB"
+  },
+  {
+   "name": "log phase1_isomorphism.json",
+   "ok": true,
+   "detail": "3 KiB"
+  },
+  {
+   "name": "log phase1_spectrum.json",
+   "ok": true,
+   "detail": "2 KiB"
+  },
+  {
+   "name": "log phase2_equivalence.json",
+   "ok": true,
+   "detail": "20 KiB"
+  },
+  {
+   "name": "log phase2_scan_check.json",
+   "ok": true,
+   "detail": "0 KiB"
+  },
+  {
+   "name": "log phase3_expressivity.json",
+   "ok": true,
+   "detail": "69 KiB"
+  },
+  {
+   "name": "log phase3_ridge_gpu.json",
+   "ok": true,
+   "detail": "1 KiB"
+  },
+  {
+   "name": "log phase4_kernel_gate.json",
+   "ok": true,
+   "detail": "0 KiB"
+  },
+  {
+   "name": "log phase4_hardware.json",
+   "ok": true,
+   "detail": "62 KiB"
+  },
+  {
+   "name": "figure fig_residual_spectrum.pdf",
+   "ok": true,
+   "detail": "20 KiB"
+  },
+  {
+   "name": "figure fig_equivalence.pdf",
+   "ok": true,
+   "detail": "28 KiB"
+  },
+  {
+   "name": "figure fig_expressivity_and_calibration.pdf",
+   "ok": true,
+   "detail": "34 KiB"
+  },
+  {
+   "name": "figure fig_hardware_speedup.pdf",
+   "ok": true,
+   "detail": "29 KiB"
+  },
+  {
+   "name": "Theorem 1 fp64 < 1e-13",
+   "ok": true,
+   "detail": "worst 1.14e-15"
+  },
+  {
+   "name": "Theorem 1 fp32 < 1e-6",
+   "ok": true,
+   "detail": "worst 4.56e-07"
+  },
+  {
+   "name": "one-sided control > 0.5",
+   "ok": true,
+   "detail": "min 0.980"
+  },
+  {
+   "name": "scan gate fp32 < 1e-5",
+   "ok": true,
+   "detail": "worst 1.78e-07"
+  },
+  {
+   "name": "scan gate fp64 < 1e-13",
+   "ok": true,
+   "detail": "worst 3.32e-16"
+  },
+  {
+   "name": "kernel gate < 1e-05",
+   "ok": true,
+   "detail": "worst 3.76e-07 over 16 paths"
+  },
+  {
+   "name": "L2-fused tiled kernel present in gate",
+   "ok": true,
+   "detail": "gpu|triton-picfc-tiled rho=0.5"
+  },
+  {
+   "name": "phase1_isomorphism.json peak RssAnon < 1500 MB",
+   "ok": true,
+   "detail": "1206 MB"
+  },
+  {
+   "name": "phase2_equivalence.json peak RssAnon < 1500 MB",
+   "ok": true,
+   "detail": "1159 MB"
+  },
+  {
+   "name": "phase3_expressivity.json peak RssAnon < 1500 MB",
+   "ok": true,
+   "detail": "916 MB"
+  },
+  {
+   "name": "phase3_ridge_gpu.json peak RssAnon < 1500 MB",
+   "ok": true,
+   "detail": "1009 MB"
+  },
+  {
+   "name": "table regeneration runs",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bench prose regeneration runs",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_training.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_iso.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_p2_A_oscillator.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_p2_B_parity.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_p2_C_largescale.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_ridge.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_ridge_gpu.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_expr.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_osc.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_gate.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_amp.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_p4_gpu.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table tab_p4_cpu.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "table sec_bench_text.tex matches JSON",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no placeholders in main.tex",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no undefined references",
+   "ok": true,
+   "detail": "0 undefined"
+  },
+  {
+   "name": "no overfull boxes",
+   "ok": true,
+   "detail": "0 overfull"
+  },
+  {
+   "name": "paper/main.pdf exists",
+   "ok": true,
+   "detail": "251 KiB"
+  },
+  {
+   "name": "CM-PiLNN.pdf exists",
+   "ok": true,
+   "detail": "251 KiB"
+  },
+  {
+   "name": "CM-PiLNN.pdf is the current build",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "failed": [],
+ "verdict": "PASS"
+}

@@ -1,0 +1,23 @@
+\begin{tabular}{lr}
+\toprule
+path & rel.\ $L_2$ vs.\ reference \\
+\midrule
+\texttt{gpu|pytorch-seq-cfc} & 0.00e+00 \\
+\texttt{gpu|triton-seq-cfc} & 3.76e-07 \\
+\texttt{gpu|triton-pure-linear-scan} & 0.00e+00 \\
+\texttt{cpu|pytorch-seq-cfc} & 2.75e-07 \\
+\texttt{cpu|avx512-seq-cfc} & 1.22e-07 \\
+\texttt{gpu|triton-picfc rho=0.0625} & 3.59e-07 \\
+\texttt{cpu|avx512-picfc rho=0.0625} & 1.14e-07 \\
+\texttt{gpu|triton-picfc rho=0.125} & 3.71e-07 \\
+\texttt{cpu|avx512-picfc rho=0.125} & 1.18e-07 \\
+\texttt{gpu|triton-picfc rho=0.25} & 3.74e-07 \\
+\texttt{cpu|avx512-picfc rho=0.25} & 1.16e-07 \\
+\texttt{gpu|triton-picfc-picard1} & 3.62e-07 \\
+\texttt{cpu|avx512-picfc-picard1} & 1.16e-07 \\
+\texttt{gpu|torch-pure-linear-scan} & 0.00e+00 \\
+\texttt{gpu|triton-picfc-tiled rho=0.5} & 3.28e-07 \\
+\texttt{cpu|avx512-picfc-fused rho=0.5} & 1.24e-07 \\
+\bottomrule
+\multicolumn{2}{l}{threshold $10^{-5}$: \textbf{PASS}} \\
+\end{tabular}

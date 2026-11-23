@@ -1,0 +1,66 @@
+{
+ "lam": 0.001,
+ "n_cal": 128,
+ "B_cal": 16,
+ "T_cal": 256,
+ "rows": {
+  "A_oscillator|native-prefix|0": {
+   "D": 256,
+   "forward_ms": 3538.9,
+   "gram_ms": 0.377,
+   "solve_ms": 18.0,
+   "total_ms": 3557.3,
+   "r2": 0.4008,
+   "refit_ms": 18.4
+  },
+  "A_oscillator|ours-jacobian-pi|0.5": {
+   "D": 256,
+   "forward_ms": 3802.7,
+   "gram_ms": 0.37,
+   "solve_ms": 6.1,
+   "total_ms": 3809.2,
+   "r2": 0.4335,
+   "refit_ms": 6.5
+  },
+  "B_parity|native-prefix|0": {
+   "D": 256,
+   "forward_ms": 4294.4,
+   "gram_ms": 0.373,
+   "solve_ms": 1.2,
+   "total_ms": 4295.9,
+   "r2": 0.0456,
+   "refit_ms": 1.6
+  },
+  "B_parity|ours-jacobian-pi|0.5": {
+   "D": 256,
+   "forward_ms": 400.2,
+   "gram_ms": 0.376,
+   "solve_ms": 1.3,
+   "total_ms": 401.9,
+   "r2": 0.0516,
+   "refit_ms": 1.7
+  },
+  "C_largescale|native-prefix|0": {
+   "D": 1024,
+   "forward_ms": 3443.2,
+   "gram_ms": 4.772,
+   "solve_ms": 19.6,
+   "total_ms": 3467.6,
+   "r2": 0.7314,
+   "refit_ms": 24.4
+  },
+  "C_largescale|ours-jacobian-pi|0.5": {
+   "D": 1024,
+   "forward_ms": 3608.0,
+   "gram_ms": 6.814,
+   "solve_ms": 14.9,
+   "total_ms": 3629.7,
+   "r2": 0.8566,
+   "refit_ms": 21.7
+  }
+ },
+ "_memory": {
+  "peak_rss_anon_mb": 1009.1,
+  "peak_vm_rss_mb": 1433.8
+ }
+}

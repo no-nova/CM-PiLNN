@@ -1,0 +1,1 @@
+{"D": 2048, "L": 4096, "B": 16, "skipped": false, "ms": {"cpu|avx512-seq-cfc": 10662.514037998335, "cpu|avx512-picfc rho=0.125": 6636.652579996735, "cpu|avx512-picfc rho=0.25": 2285.3154900003574}, "source": "adhoc; GPU skipped (OOM at this shape)"}

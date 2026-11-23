@@ -1,0 +1,10 @@
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrrrrc}
+\toprule
+checkpoint & task & $D$ & $T$ & params & eval MSE & metric & $R^2$ by horizon \\\\
+\midrule
+C-largescale & multiscale & 1024 & 1024 & 3169k & 0.134 & 0.821 & 0.76/0.88/0.90/0.90/0.81 \\
+A-oscillator & oscillator & 256 & 512 & 201k & 0.579 & 0.510 & 0.52/0.60/0.62/0.63/0.41 \\
+B-parity & parity & 256 & 512 & 200k & 0.264 & 0.862 & 0.92/0.85/0.98/0.88/0.06 \\
+\bottomrule
+\end{tabular}
