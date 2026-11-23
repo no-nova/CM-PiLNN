@@ -148,17 +148,17 @@
   {
    "name": "real-stream kernel gate < 1e-5",
    "ok": true,
-   "detail": "worst 1.47e-07 over 4 paths"
+   "detail": "worst 1.86e-07 over 4 paths"
   },
   {
    "name": "Model D beats the unigram byte model",
    "ok": true,
-   "detail": "BPD 2.6526613235473633 vs unigram 4.508312702178955"
+   "detail": "BPD 2.8821165561676025 vs unigram 4.579070568084717"
   },
   {
    "name": "Model E explains the next frame",
    "ok": true,
-   "detail": "R^2 0.9745418400140494"
+   "detail": "R^2 0.8996229586096403"
   },
   {
    "name": "decoupling sweep on both real models",
@@ -178,17 +178,82 @@
   {
    "name": "ours@rho=1/4 within 0.5 BPD / 0.15 R^2 of exact",
    "ok": true,
-   "detail": "worst delta -0.012"
+   "detail": "worst delta -0.023"
   },
   {
    "name": "GPU speedup > 1 on real streams",
    "ok": true,
-   "detail": "7.0x, 4.0x"
+   "detail": "6.8x, 3.9x"
   },
   {
    "name": "spectrum computed on real streams",
    "ok": true,
    "detail": "D_wiki, E_sensor"
+  },
+  {
+   "name": "D_wiki: three non-empty regions",
+   "ok": true,
+   "detail": "train=182000, cal=39000, test=39000"
+  },
+  {
+   "name": "D_wiki: test region is the final 15%",
+   "ok": true,
+   "detail": "0.150"
+  },
+  {
+   "name": "D_wiki: regions disjoint and exhaustive",
+   "ok": true,
+   "detail": "ordered boundaries"
+  },
+  {
+   "name": "E_sensor: three non-empty regions",
+   "ok": true,
+   "detail": "train=1874, cal=417, test=419"
+  },
+  {
+   "name": "E_sensor: test region is the final 15%",
+   "ok": true,
+   "detail": "0.155"
+  },
+  {
+   "name": "E_sensor: regions disjoint and exhaustive",
+   "ok": true,
+   "detail": "ordered boundaries"
+  },
+  {
+   "name": "Triton path gated on real inputs",
+   "ok": true,
+   "detail": "max rel 1.86e-07"
+  },
+  {
+   "name": "D_wiki: no configuration beats exact (zero-shot)",
+   "ok": true,
+   "detail": "ref 2.8821"
+  },
+  {
+   "name": "E_sensor: no configuration beats exact (zero-shot)",
+   "ok": true,
+   "detail": "ref 0.8996"
+  },
+  {
+   "name": "D_wiki: no configuration beats exact (ridge)",
+   "ok": true,
+   "detail": "ref 2.8821"
+  },
+  {
+   "name": "E_sensor: no configuration beats exact (ridge)",
+   "ok": true,
+   "detail": "ref 0.8996"
+  },
+  {
+   "name": "D_wiki: no configuration beats exact (daft)",
+   "ok": true,
+   "detail": "ref 2.8821"
+  },
+  {
+   "name": "E_sensor: no configuration beats exact (daft)",
+   "ok": true,
+   "detail": "ref 0.8996"
   },
   {
    "name": "phase1_isomorphism.json peak RssAnon < 1500 MB",
@@ -213,7 +278,7 @@
   {
    "name": "phase6_realworld.json peak RssAnon < 1500 MB",
    "ok": true,
-   "detail": "324 MB"
+   "detail": "325 MB"
   },
   {
    "name": "table regeneration runs",
@@ -223,7 +288,7 @@
   {
    "name": "real-stream table regeneration runs",
    "ok": true,
-   "detail": "valid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\,\"? A raw string is also an option.\n  f\"solve, ${a['solve_ms']:.0f}$--${b['solve_ms']:.0f}$\\,ms at these sizes) is \"\n"
+   "detail": "id escape sequence. Such sequences will not work in the future. Did you mean \"\\\\D\"? A raw string is also an option.\n  f\"(${se['mse_zero']:.4f}$), with $\\Delta t=1/30$\\,s fixed by the camera and the \"\n"
   },
   {
    "name": "bench prose regeneration runs",
@@ -338,12 +403,12 @@
   {
    "name": "paper/main.pdf exists",
    "ok": true,
-   "detail": "284 KiB"
+   "detail": "291 KiB"
   },
   {
    "name": "CM-PiLNN.pdf exists",
    "ok": true,
-   "detail": "284 KiB"
+   "detail": "291 KiB"
   },
   {
    "name": "CM-PiLNN.pdf is the current build",

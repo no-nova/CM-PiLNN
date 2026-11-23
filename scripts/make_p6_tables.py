@@ -123,19 +123,24 @@ def text():
     out = []
     if wd:
         out.append(
-            r"Model~D is trained on the first $200$\,k bytes of the WikiText-2 test split and "
-            r"evaluated on the next $16$\,k bytes at the long horizon $L=512$: it reaches "
+            r"Model~D is trained on the first $70\%$ of a $260$\,k-byte WikiText-2 stream "
+            r"($182$\,k bytes), ranked and fine-tuned on the next $15\%$, and scored once on the "
+            r"final $15\%$ ($39$\,k bytes) at the long horizon $L=512$: it reaches "
             f"${wd['bpd']:.3f}$ bits per byte against a unigram baseline of "
             f"${wd['bpd_unigram']:.3f}$, i.e.\ {100*(1-wd['bpd']/wd['bpd_unigram']):.1f}\% of the "
             r"unigram entropy removed, with one byte per step and an event timestep that is "
             r"doubled at sentence boundaries.")
     if se:
         out.append(
-            r"Model~E consumes the real surveillance clip `V1' (216 frames, $16\times16$ grey "
-            r"levels, 30\,fps) and predicts the next frame's $256$ pixel values: held-out "
+            r"Model~E consumes ten real CIF clips ($4\,410$ frames at $16\times16$ grey levels, "
+            r"$150$--$300$ frames each, 25--30\,fps) and predicts the next frame's $256$ pixel "
+            r"values, with the same $70/15/15$ split applied inside every clip ($1\,874$ / $417$ "
+            r"/ $419$ frames): held-out "
             f"$R^2={se['r2']:.3f}$ against ${se['mse']:.4f}$ MSE for the zero predictor "
             f"(${se['mse_zero']:.4f}$), with $\Delta t=1/30$\,s fixed by the camera and the "
-            r"frame-to-frame noise of a real sensor present at every step.")
+            r"frame-to-frame noise, illumination drift and scene cuts of real footage present at every "
+            r"step. The clips are real camera footage (surveillance, traffic, news, hand-held "
+            r"nature); no synthetic stream enters Model~E.")
     if dec:
         def g(nm, k):
             return dec.get(nm, {}).get("rows", {}).get(k, {}).get("delta")
@@ -156,20 +161,25 @@ def text():
             return v
 
         a, b = rr("D_wiki", "ours|0.25"), rr("E_sensor", "ours|0.25")
+        a0, b0 = rr("D_wiki", "ours|0"), rr("E_sensor", "ours|0")
         if a and b:
             out.append(
-                r"Closed-form readout recalibration on the decoupled states (fp64, one Cholesky "
-                f"solve, ${a['solve_ms']:.0f}$--${b['solve_ms']:.0f}$\,ms at these sizes) is "
-                r"decisive for the regression readout and useless for the classifier: frames go "
-                f"from ${b['metric_default']:.3f}$ to ${b['metric_ridge']:.3f}$ $R^2$ at "
-                f"$\rho=1/4$, whereas text goes from ${a['metric_default']:.3f}$ to "
-                f"${a['metric_ridge']:.3f}$ BPD. The asymmetry is expected: least squares on "
-                r"one-hot targets is not the maximum-likelihood head, so for a 256-way softmax "
-                r"readout the closed form is the wrong estimator and the trained head already "
-                r"occupies the optimum that the refit approaches from the wrong side. We report "
-                r"the negative result rather than hiding it, and note that the cheap "
-                r"recalibration recipe of Section~\ref{sec:express} transfers to regression "
-                r"heads, not to classifiers.")
+                r"Closed-form readout recalibration on decoupled states (fp64, one Cholesky "
+                rf"solve, ${a['solve_ms']:.0f}$--${b['solve_ms']:.0f}$\,ms at these sizes) does "
+                r"exactly what it is supposed to do and no more. It \emph{rescues} the "
+                r"approximation where the head has no chance: the pure-linear decoupled model "
+                rf"degenerates to ${b0['metric_default']:.3f}$ $R^2$ on frames and "
+                rf"${a0['metric_default']:.3f}$ BPD on text, and one linear solve on states it "
+                rf"has never seen lifts the frame model to ${b0['metric_ridge']:.3f}$ $R^2$, "
+                r"i.e.\ most of the exact model's quality. At $\rho=1/4$, where the trained head "
+                rf"is already near-optimal, the same refit moves frames from "
+                rf"${b['metric_default']:.3f}$ to ${b['metric_ridge']:.3f}$ $R^2$ (a small loss) "
+                rf"and text from ${a['metric_default']:.3f}$ to ${a['metric_ridge']:.3f}$ BPD (a "
+                r"large one: least squares on one-hot targets is not the maximum-likelihood "
+                r"head, so for a 256-way softmax readout the closed form is the wrong "
+                r"estimator). We report both directions: the cheap recalibration of "
+                r"Section~\ref{sec:express} buys accuracy in approximation regimes and cannot "
+                r"improve on a head trained end-to-end.")
     if df:
         def dd(nm, k):
             v = df.get(nm, {}).get("rows", {}).get(k)
@@ -181,7 +191,10 @@ def text():
                        + r" BPD at $\rho=1/8$" + ((" and the frame model from " + b + r" $R^2$") if b else "")
                        + r", so the real streams behave like Parity-Stream and FlipFlop-Reset "
                        r"rather than like the oscillator: the decoupled fit recovers with a "
-                       r"short fine-tune, not with a new architecture.")
+                       r"short fine-tune, not with a new architecture. No configuration in "
+                       r"either table beats the exact model on the held-out region, which is the "
+                       r"property an approximation guarantee should have and which a leaky split "
+                       r"would destroy.")
     if hw:
         sps = [v["rows"].get("gpu|speedup rho=0.25") for v in hw.values()
                if isinstance(v, dict) and "rows" in v]

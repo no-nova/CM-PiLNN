@@ -1,0 +1,6 @@
+/home/user/Downloads/CM-PiLNN/scripts/phase6_realworld_benchmarks.py:290: DeprecationWarning: __array_wrap__ must accept context and return_scalar arguments (positionally) in the future. (Deprecated NumPy 2.0)
+  lj = np.log(J + 1e-30); lv = np.log(v.numpy() + 1e-30)
+  [spectrum] D_wiki: gini 0.490 R(.25) 0.440
+  [spectrum] E_sensor: gini 0.809 R(.25) 0.711
+wrote results/phase6_realworld.json
+peak RssAnon MB: 854.8

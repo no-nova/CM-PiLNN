@@ -501,10 +501,23 @@ phenomenon survives contact with data we did not generate. Two additional models
 real streams, with all hyper-parameters, code paths and gates unchanged:
 Model~D (\emph{CfC-WikiText}) consumes real English text one byte at a time, with a $256$-way
 one-hot input, an event timestep that doubles at sentence boundaries, and next-byte prediction as
-the task; Model~E (\emph{CfC-SensorTrace}) consumes a real surveillance clip as a stream of
-$16\times16$ grey frames at a fixed $1/30$\,s camera step and predicts the next frame's $256$ pixel
-values, so sensor noise and true scene motion enter the state at every step. Both use $D=512$ and a
-single linear readout, i.e.\ the same architecture class as Models~A--C.
+the task; Model~E (\emph{CfC-SensorTrace}) consumes ten real CIF video clips ($4\,410$ frames of genuine
+camera footage: surveillance, traffic, news, hand-held nature) as streams of $16\times16$ grey frames
+at the clips' own frame step and predicts the next frame's $256$ pixel values, so sensor noise, global
+illumination change and true scene motion enter the state at every step. Both use $D=512$ and a single
+linear readout, i.e.\ the same architecture class as Models~A--C.
+
+\paragraph{Three disjoint regions, and what each one is allowed to touch.} Every real stream is cut
+into three contiguous, non-overlapping regions at $70/15/15\%$: the \emph{train} region fits the
+exact base model ($\rho=1$, full BPTT) and is the only region used to fit a readout; the
+\emph{calibration} region estimates the Jacobian scores $\mathcal{J}_i$, the mean state $\bar h$ used
+by the reconstruction, and the $5$-epoch DAFT fine-tune; the \emph{test} region is touched exactly
+once, by the metric, for every configuration including the exact model. For text the cut is temporal on
+the byte stream; for video it is temporal \emph{inside every clip}, so each clip contributes to all
+three regions (the content distribution is shared) while no frame, and therefore no window, is shared.
+Windows never cross a region boundary, and the regulariser of the closed-form refit is selected on a
+held-out slice of \emph{windows} rather than of rows, since rows inside one window are correlated.
+Section~\ref{sec:bugs} records the leak that the previous version of this protocol hid.
 
 \begin{table}[tbp]
 \centering
@@ -530,8 +543,9 @@ spends one extra cold$\to$hot GEMM and one extra scan.}
 
 \begin{table}[tbp]
 \centering
-\caption{End-to-end latency on the real streams ($B=8$, fp32, \code{cudaEvent}, warm-up 25, 100
-repetitions). ``spd.'' columns divide the faster sequential baseline by the $\pi$-CfC time.}
+\caption{End-to-end latency on the real streams ($B=8$, fp32, \code{cudaEvent}, warm-up 2, 5
+repetitions; the same timing helper as Table~\ref{tab:gpu}, with the shorter budget because each
+cell is a $512$-byte/$32$-frame rollout). ``spd.'' columns divide the faster sequential baseline by the $\pi$-CfC time.}
 \label{tab:p6hw}
 
 \input{tab_p6_hw.tex}
@@ -600,6 +614,18 @@ because each one changed a published conclusion.
       building it with \code{argsort(..., descending=True)} put the reported hottest channels into the cold
       group and made the Jacobian ordering behave exactly like index order ($+0.94$ BPD instead of $+0.59$).
       The two real-data models are what caught it: a synthetic-only validation would have kept the wrong sign.
+\item \textbf{``Better than exact'' on the real streams} (metric: DAFT reaching $1.462$ BPD where the
+      exact model scores $2.882$, and a refit reaching $0.993$ $R^2$ where the exact model scores
+      $0.975$). Two separate causes, both now impossible by construction. First, the split was made on
+      clip boundaries, so the ``held-out'' clip was scored while the base model had been fitted on a
+      neighbouring clip of the same scene, and the refit was evaluated on the very rows it was fitted
+      on. Second, DAFT and the refit were compared against an exact model evaluated on a different
+      region. The audit replaced both with the $70/15/15$ protocol above: DAFT now reaches $2.923$ BPD
+      at $\rho=1/4$ against $2.882$ for the exact model, the refit reaches $0.851$ $R^2$ against
+      $0.900$, and the pure-linear decoupled model --- which is what the refit is actually for --- is
+      lifted from $-2.708$ to $0.831$ $R^2$. An approximation that beats the thing it approximates is a
+      bug report, not a result, and every table in Section~\ref{sec:real} now carries an assertion that
+      it cannot happen.
 \item \textbf{Least squares is not a maximum-likelihood head.} The closed-form refit of the byte model's
       $256$-way softmax readout is a one-hot least-squares problem: it moves BPD from $3.24$ to $7.56$. A
       Newton/IRLS variant diverged even after whitening the features and using a damped step, so we report the

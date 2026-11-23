@@ -5,18 +5,18 @@
   "B": 8,
   "T": 512,
   "rows": {
-   "gpu|loop": 35.39688415527344,
-   "gpu|kernel-seq": 28.121792602539063,
-   "gpu|best-seq": 28.121792602539063,
-   "gpu|picfc rho=0.125": 2.2151615142822267,
-   "gpu|speedup rho=0.125": 12.69514318537233,
-   "gpu|picfc rho=0.25": 4.009299087524414,
-   "gpu|speedup rho=0.25": 7.014141870843359,
-   "cpu|avx512-seq": 18.661328666591242,
-   "cpu|picfc-fused rho=0.125": 17.591362666280475,
-   "cpu|speedup rho=0.125": 1.0608233722769926,
-   "cpu|picfc-fused rho=0.25": 13.498557668450909,
-   "cpu|speedup rho=0.25": 1.3824683440221812
+   "gpu|loop": 30.52928771972656,
+   "gpu|kernel-seq": 28.14559326171875,
+   "gpu|best-seq": 28.14559326171875,
+   "gpu|picfc rho=0.125": 2.3564479827880858,
+   "gpu|speedup rho=0.125": 11.94407577306996,
+   "gpu|picfc rho=0.25": 4.138662338256836,
+   "gpu|speedup rho=0.25": 6.800649814203833,
+   "cpu|avx512-seq": 18.300286998661857,
+   "cpu|picfc-fused rho=0.125": 15.184014999249484,
+   "cpu|speedup rho=0.125": 1.2052337276778509,
+   "cpu|picfc-fused rho=0.25": 16.81840166565962,
+   "cpu|speedup rho=0.25": 1.088110949093813
   }
  },
  "E_sensor": {
@@ -25,22 +25,22 @@
   "B": 8,
   "T": 32,
   "rows": {
-   "gpu|loop": 2.0105024337768556,
-   "gpu|kernel-seq": 1.8242879867553712,
-   "gpu|best-seq": 1.8242879867553712,
-   "gpu|picfc rho=0.125": 0.4401792049407959,
-   "gpu|speedup rho=0.125": 4.1444211045833885,
-   "gpu|picfc rho=0.25": 0.4515200138092041,
-   "gpu|speedup rho=0.25": 4.040325857020036,
-   "cpu|avx512-seq": 1.220682665007189,
-   "cpu|picfc-fused rho=0.125": 0.7527626657974906,
-   "cpu|speedup rho=0.125": 1.6216036215265475,
-   "cpu|picfc-fused rho=0.25": 0.8670310004769514,
-   "cpu|speedup rho=0.25": 1.4078881427950036
+   "gpu|loop": 2.0587520599365234,
+   "gpu|kernel-seq": 1.8119680404663085,
+   "gpu|best-seq": 1.8119680404663085,
+   "gpu|picfc rho=0.125": 0.43551998138427733,
+   "gpu|speedup rho=0.125": 4.160470513217473,
+   "gpu|picfc rho=0.25": 0.4638207912445068,
+   "gpu|speedup rho=0.25": 3.9066123698433244,
+   "cpu|avx512-seq": 1.179837000866731,
+   "cpu|picfc-fused rho=0.125": 0.8077333332039416,
+   "cpu|speedup rho=0.125": 1.4606763796497158,
+   "cpu|picfc-fused rho=0.25": 0.9700010001931029,
+   "cpu|speedup rho=0.25": 1.2163255508312414
   }
  },
  "_memory": {
-  "peak_rss_anon_mb": 1034.4,
-  "peak_vm_rss_mb": 1551.4
+  "peak_rss_anon_mb": 1051.2,
+  "peak_vm_rss_mb": 1567.9
  }
 }

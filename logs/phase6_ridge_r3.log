@@ -1,0 +1,18 @@
+  [ridge] D_wiki ours rho=0: 3.9797 -> 7.7362 (1273.9 ms, lam 0.001)
+  [ridge] D_wiki variance rho=0: 3.9797 -> 7.7362 (1232.8 ms, lam 0.001)
+  [ridge] D_wiki ours rho=0.125: 3.5644 -> 7.6746 (1232.1 ms, lam 0.001)
+  [ridge] D_wiki variance rho=0.125: 3.5744 -> 7.6757 (1233.6 ms, lam 0.001)
+  [ridge] D_wiki ours rho=0.25: 3.4080 -> 7.6428 (1232.3 ms, lam 0.001)
+  [ridge] D_wiki variance rho=0.25: 3.4341 -> 7.6470 (1232.3 ms, lam 0.001)
+  [ridge] D_wiki ours rho=0.5: 3.0743 -> 7.6065 (1232.8 ms, lam 0.001)
+  [ridge] D_wiki variance rho=0.5: 3.1162 -> 7.6096 (1232.2 ms, lam 0.001)
+  [ridge] E_sensor ours rho=0: -2.7077 -> 0.8307 (65.1 ms, lam 0.001)
+  [ridge] E_sensor variance rho=0: -2.7077 -> 0.8307 (56.4 ms, lam 0.001)
+  [ridge] E_sensor ours rho=0.125: 0.7341 -> 0.8470 (56.5 ms, lam 0.001)
+  [ridge] E_sensor variance rho=0.125: 0.3951 -> 0.8557 (56.4 ms, lam 0.001)
+  [ridge] E_sensor ours rho=0.25: 0.8767 -> 0.8508 (56.5 ms, lam 0.001)
+  [ridge] E_sensor variance rho=0.25: 0.8351 -> 0.8521 (56.5 ms, lam 0.001)
+  [ridge] E_sensor ours rho=0.5: 0.8969 -> 0.8447 (56.5 ms, lam 0.001)
+  [ridge] E_sensor variance rho=0.5: 0.8953 -> 0.8453 (56.4 ms, lam 0.001)
+wrote results/phase6_realworld.json
+peak RssAnon MB: 1193.5

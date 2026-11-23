@@ -1,0 +1,94 @@
+{
+ "D_wiki": {
+  "total": 260000,
+  "regions": {
+   "train": {
+    "start": 0,
+    "end": 182000,
+    "n": 182000
+   },
+   "cal": {
+    "start": 182000,
+    "end": 221000,
+    "n": 39000
+   },
+   "test": {
+    "start": 221000,
+    "end": 260000,
+    "n": 39000
+   }
+  }
+ },
+ "E_sensor": {
+  "total": 2710,
+  "regions": {
+   "train": {
+    "start": 0,
+    "end": 1874,
+    "n": 1874
+   },
+   "cal": {
+    "start": 1874,
+    "end": 2291,
+    "n": 417
+   },
+   "test": {
+    "start": 2291,
+    "end": 2710,
+    "n": 419
+   }
+  },
+  "per_clip": {
+   "bus": {
+    "train": 82,
+    "cal": 34,
+    "test": 34
+   },
+   "coastguard": {
+    "train": 210,
+    "cal": 45,
+    "test": 45
+   },
+   "container": {
+    "train": 210,
+    "cal": 45,
+    "test": 45
+   },
+   "flower": {
+    "train": 175,
+    "cal": 37,
+    "test": 38
+   },
+   "hall_monitor": {
+    "train": 210,
+    "cal": 45,
+    "test": 45
+   },
+   "highway": {
+    "train": 210,
+    "cal": 45,
+    "test": 45
+   },
+   "husky": {
+    "train": 175,
+    "cal": 37,
+    "test": 38
+   },
+   "news": {
+    "train": 210,
+    "cal": 45,
+    "test": 45
+   },
+   "silent": {
+    "train": 210,
+    "cal": 45,
+    "test": 45
+   },
+   "tempete": {
+    "train": 182,
+    "cal": 39,
+    "test": 39
+   }
+  }
+ }
+}

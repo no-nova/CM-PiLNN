@@ -1,0 +1,5 @@
+/home/user/Downloads/CM-PiLNN/scripts/phase6_realworld_benchmarks.py:642: UserWarning: linestyle is redundantly defined by the 'linestyle' keyword argument and the fmt string "o-" (-> linestyle='-'). The keyword argument will take precedence.
+  ax[0].plot(np.array(xs)[o], np.array(ys)[o], "o-", ms=3, color=col,
+wrote results/phase6_realworld.json
+wrote figures/fig_realworld_benchmarks.{pdf,png}
+peak RssAnon MB: 324.4

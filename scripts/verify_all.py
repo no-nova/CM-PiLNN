@@ -145,6 +145,50 @@ def realworld():
     spg = {k: v for k, v in d.get("spectrum", {}).items() if k != "_memory"}
     ok &= check("spectrum computed on real streams", set(spg) >= {"D_wiki", "E_sensor"},
                 ", ".join(sorted(spg)))
+    # ---- R3: three disjoint regions, and no approximation may beat the exact model
+    try:
+        sp = load("results/phase6_split.json")
+    except Exception:                                        # noqa: BLE001
+        sp = {}
+        ok &= check("three-region split report present", False, "missing phase6_split.json")
+    for nm, v in (sp.items() if isinstance(sp, dict) else []):
+        if not isinstance(v, dict) or "regions" not in v:
+            continue
+        r = v["regions"]
+        tot = sum(x["n"] for x in r.values())
+        frac = r["test"]["n"] / max(1, tot)
+        ok &= check(f"{nm}: three non-empty regions",
+                    all(x["n"] > 0 for x in r.values()), ", ".join(f"{k}={x['n']}" for k, x in r.items()))
+        ok &= check(f"{nm}: test region is the final 15%", 0.10 <= frac <= 0.20, f"{frac:.3f}")
+        ok &= check(f"{nm}: regions disjoint and exhaustive",
+                    tot == v.get("total", tot) and r["train"]["end"] <= r["cal"]["start"]
+                    and r["cal"]["end"] <= r["test"]["start"], "ordered boundaries")
+    gate6 = d.get("gate", {})
+    grows = gate6.get("rows", {}) if isinstance(gate6, dict) else {}
+    if grows:
+        mx = max(grows.values())
+        ok &= check("Triton path gated on real inputs", mx < 1e-5, f"max rel {mx:.2e}")
+    dec6 = {k: v for k, v in d.get("decouple", {}).items() if k != "_memory"}
+    for nm, v in dec6.items():
+        if not isinstance(v, dict) or "rows" not in v:
+            continue
+        ref = v["reference"]
+        # score = sgn * metric, so "higher is better" for both: R^2 keeps its sign, BPD flips
+        sgn = -1.0 if v.get("kind") == "wiki" else 1.0
+        better = [k for k, rr in v["rows"].items() if sgn * rr["metric"] > sgn * ref + 1e-9]
+        ok &= check(f"{nm}: no configuration beats exact (zero-shot)", not better,
+                    f"ref {ref:.4f}" + ("" if not better else f"; better: {better}"))
+    for part, key in (("ridge", "metric_ridge"), ("daft", "after")):
+        for nm, v in (d.get(part, {}) or {}).items():
+            if not isinstance(v, dict) or "rows" not in v:
+                continue
+            ref = dec6.get(nm, {}).get("reference")
+            if ref is None:
+                continue
+            sgn = -1.0 if dec6.get(nm, {}).get("kind") == "wiki" else 1.0
+            better = [k for k, rr in v["rows"].items() if sgn * rr[key] > sgn * ref + 1e-9]
+            ok &= check(f"{nm}: no configuration beats exact ({part})", not better,
+                        f"ref {ref:.4f}" + ("" if not better else f"; better: {better}"))
     return ok
 
 
@@ -219,6 +263,7 @@ def manuscript():
     if final.exists() and pdf.exists():
         ok &= check("CM-PiLNN.pdf is the current build", final.read_bytes() == pdf.read_bytes())
     return ok
+
 
 
 def main():

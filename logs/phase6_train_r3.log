@@ -1,0 +1,29 @@
+/home/user/Downloads/CM-PiLNN/scripts/phase6_realworld_benchmarks.py:210: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /build/python-pytorch/src/pytorch-cuda/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  curve.append((it, float(loss)))
+  [D_wiki] step 0 loss 5.5452
+  [D_wiki] step 120 loss 2.6863
+  [D_wiki] step 240 loss 2.3548
+  [D_wiki] step 360 loss 2.1277
+  [D_wiki] step 480 loss 2.1187
+  [D_wiki] step 600 loss 1.9803
+  [D_wiki] step 720 loss 1.9004
+  [D_wiki] step 840 loss 1.8948
+  [D_wiki] step 960 loss 1.7696
+  [D_wiki] step 1080 loss 1.7196
+  [D_wiki] step 1199 loss 1.8403
+  [D_wiki] eval {'bpd': 2.8821165561676025, 'bpd_unigram': 4.579070568084717, 'n_bytes': 16384}
+  [E_sensor] step 0 loss 0.3327
+  [E_sensor] step 150 loss 0.0087
+  [E_sensor] step 300 loss 0.0035
+  [E_sensor] step 450 loss 0.0031
+  [E_sensor] step 600 loss 0.0024
+  [E_sensor] step 750 loss 0.0020
+  [E_sensor] step 900 loss 0.0017
+  [E_sensor] step 1050 loss 0.0014
+  [E_sensor] step 1200 loss 0.0016
+  [E_sensor] step 1350 loss 0.0014
+  [E_sensor] step 1499 loss 0.0014
+  [E_sensor] eval {'r2': 0.8996229586096403, 'mse': 0.005423449911177158, 'mse_zero': 0.2786700129508972, 'n_frames': 12}
+wrote results/phase6_realworld.json
+peak RssAnon MB: 1226.5

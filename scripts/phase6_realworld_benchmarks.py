@@ -16,6 +16,7 @@ DAFT, and hardware latency against the strongest sequential baseline we could wr
 Usage:  python scripts/phase6_realworld_benchmarks.py [train|spectrum|decouple|ridge|daft|hw|all|fig]
 """
 import json
+from pathlib import Path
 import os
 import sys
 import time
@@ -35,6 +36,7 @@ RES = "results"
 CKPT = "results/checkpoints"
 WIKI = "/home/user/Downloads/CM-LFM3/results/wikitext2_test.txt"
 FRAMES = "/home/user/Downloads/CNN-CM/data/real_videos/frames_224"
+DATA = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) / "data"
 RHO = (0.0, 0.0625, 0.125, 0.25, 0.5, 1.0)
 DT_PUNCT = {ord("."), ord("!"), ord("?")}
 torch.backends.cuda.matmul.allow_tf32 = False
@@ -70,30 +72,58 @@ def wiki_batch(b, dt, n_seq, T, device, start=None, gen=None):
 
 
 def load_frames(size=16):
-    """real clip -> (n_frames, size*size) grayscale vectors, per scenario."""
-    from PIL import Image
-    names = sorted(os.listdir(FRAMES))
-    scen = {}
-    for n in names:
-        key = n.split("_")[0]
-        scen.setdefault(key, []).append(os.path.join(FRAMES, n))
+    """real CIF clips (10 of them, 30 fps, 150-300 frames each) -> (n, size*size) grey vectors."""
+    z = np.load(str(DATA / "frames16_raw.npz"))
     out = {}
-    for k, paths in scen.items():
-        fr = []
-        for p in sorted(paths):
-            im = Image.open(p).convert("L").resize((size, size), Image.BILINEAR)
-            fr.append(torch.from_numpy(np.asarray(im, dtype=np.float32).copy()).reshape(-1) / 255.0)
-        out[k] = torch.stack(fr)                              # (T, size^2)
+    for k in z.files:
+        v = z[k][:300].astype(np.float32) / 255.0        # cap at 300 frames for a balanced pool
+        out[k] = torch.from_numpy(v.reshape(len(v), -1))
     return out
 
 
-def frame_batch(frames, n_seq, T, device, gen=None, start=None):
+# Three strictly disjoint contiguous regions of every stream:
+#   train  : base model, full BPTT                     (first 70% of each stream)
+#   cal    : Jacobian ranking, ridge fit, 5-epoch DAFT  (70-85%)
+#   test   : every reported metric, touched once        (last 15%)
+# For text the split is temporal on the byte stream; for video it is temporal *within each
+# clip*, so every clip contributes to all three regions and the content distribution is shared
+# while no frame (and therefore no window) is ever shared.
+SPLIT = (0.70, 0.85)
+
+
+def split_wiki(n_bytes=260_000):
+    b, dt = load_wiki(n_bytes)
+    n = len(b)
+    i1, i2 = int(SPLIT[0] * n), int(SPLIT[1] * n)
+    return (b[:i1], dt[:i1]), (b[i1:i2], dt[i1:i2]), (b[i2:], dt[i2:])
+
+
+def split_frames(size=16, T=32):
+    """Temporal 70/15/15 inside every clip.  Boundaries are pulled forward when a short clip
+    (150-260 frames at 30 fps) would otherwise leave a region shorter than one window."""
+    fr = load_frames(size)
+    need = T + 2
+    tr, cal, te = {}, {}, {}
+    for k, f in fr.items():
+        n = len(f)
+        i2 = min(int(SPLIT[1] * n), n - need)
+        i1 = min(int(SPLIT[0] * n), i2 - need)
+        if i1 < need:
+            continue
+        tr[k], cal[k], te[k] = f[:i1], f[i1:i2], f[i2:]
+    return tr, cal, te
+
+
+def frame_batch(frames, n_seq, T, device, gen=None, start=None, stride=None):
     keys = list(frames)
     xs, ds, ys = [], [], []
     for i in range(n_seq):
         k = keys[i % len(keys)] if start is None else keys[(start + i) % len(keys)]
         f = frames[k]
-        s = int(torch.randint(0, len(f) - T - 1, (1,), generator=gen)) if start is None else 0
+        if start is None:
+            s = int(torch.randint(0, len(f) - T - 1, (1,), generator=gen))
+        else:
+            s = 0 if stride is None else min(start + i * stride, len(f) - T - 1)
         seq = f[s:s + T + 1]
         xs.append(seq[:-1]); ys.append(seq[1:])
         # 30 fps camera: uniform 1/30 s step, expressed in the same units as the other models
@@ -148,14 +178,13 @@ def state_and_pred(model, head, x, dt, rho=1.0, order=None, hbar=None, picard=0)
 def train(name, kind, D, T, steps, B, lr, device, seed=0, b_f=2.0):
     torch.manual_seed(seed)
     if kind == "wiki":
-        b, dt_all = load_wiki()
-        b_tr, dt_tr = b[:200_000], dt_all[:200_000]
+        (b_tr, dt_tr), (b_cal, dt_cal), (b_te, dt_te) = split_wiki()
         d_in, d_out, T_eval = 256, 256, 512
         model = make_cfc(d_in, D, d_out, b_f, device)
         head = Readout(D, d_out).to(device)
     else:
-        frames = load_frames()
-        d_in = d_out = frames["V1"].shape[1]
+        frames, frames_cal, frames_te = split_frames(T=T)
+        d_in = d_out = next(iter(frames.values())).shape[1]
         T_eval = 32
         model = make_cfc(d_in, D, d_out, b_f, device)
         head = Readout(D, d_out).to(device)
@@ -183,25 +212,28 @@ def train(name, kind, D, T, steps, B, lr, device, seed=0, b_f=2.0):
     # held-out evaluation at the *long* horizon
     with torch.no_grad():
         if kind == "wiki":
-            xe, de, ye = wiki_batch(b[200_000:], dt_all[200_000:], 32, T_eval, device, start=0)
+            xe, de, ye = wiki_batch(b_te, dt_te, 32, T_eval, device, start=0)
+            xc, dc, yc = wiki_batch(b_cal, dt_cal, 32, T_eval, device, start=0)
             _, pe = state_and_pred(model, head, xe, de)
             m = bpd(pe, ye)
-            lp = torch.bincount(b_tr, minlength=256).float()
+            lp = torch.bincount(b_tr, minlength=256).float() + 1e-6   # smoothed, train region
             lp = (lp / lp.sum()).log().to(ye.device).unsqueeze(0).expand(ye.numel(), -1)
             unigram = float(F.cross_entropy(lp, ye.reshape(-1)) / np.log(2))
             ev = dict(bpd=m, bpd_unigram=unigram, n_bytes=int(ye.numel()))
         else:
-            xe, de, ye = frame_batch(frames, 12, T_eval, device, start=0)
+            xe, de, ye = frame_batch(frames_te, 12, T_eval, device, start=0, stride=1)
+            xc, dc, yc = frame_batch(frames_cal, 12, T_eval, device, start=0, stride=1)
             _, pe = state_and_pred(model, head, xe, de)
             ev = dict(r2=r2(pe, ye), mse=float(F.mse_loss(pe, ye)),
                       mse_zero=float(F.mse_loss(torch.zeros_like(ye), ye)), n_frames=12)
         # trajectory reference for the decoupling study (states, kept small)
         _, He = state_and_pred(model, head, xe, de)
     torch.save(dict(cfg=dict(kind=kind, d_in=d_in, D=D, d_out=d_out, T=T, T_eval=T_eval,
-                             b_f=b_f, seed=seed),
+                             b_f=b_f, seed=seed, split=SPLIT),
                     model=model.state_dict(), head=head.state_dict(), curve=curve, eval=ev),
                f"{CKPT}/${name}.pt".replace("$", ""))
-    torch.save(dict(x=xe.cpu(), dt=de.cpu(), y=ye.cpu(), H=He.cpu()), f"{CKPT}/{name}_eval.pt")
+    torch.save(dict(x=xe.cpu(), dt=de.cpu(), y=ye.cpu(), H=He.cpu(),
+                    xcal=xc.cpu(), dcal=dc.cpu(), ycal=yc.cpu()), f"{CKPT}/{name}_eval.pt")
     print(f"  [{name}] eval {ev}", flush=True)
     return ev
 
@@ -243,7 +275,7 @@ def spectrum_part(names, dev):
     out = {}
     for name in names:
         m, h, c, ev = load(name, dev)
-        x, dt = ev["x"].to(dev), ev["dt"].to(dev)
+        x, dt = ev["xcal"].to(dev), ev["dcal"].to(dev)   # calibration region only
         ors, sc = orders(m, x, dt, None, dev)
         with torch.no_grad():
             _, H = m.forward_exact(x, dt, keep_h=True)
@@ -277,13 +309,14 @@ def decouple_part(names, dev):
     for name in names:
         m, h, c, ev = load(name, dev)
         kind = c["kind"]
-        x, dt, y = ev["x"].to(dev), ev["dt"].to(dev), ev["y"].to(dev)
+        x, dt, y = ev["x"].to(dev), ev["dt"].to(dev), ev["y"].to(dev)          # TEST region
+        xc, dc, yc = ev["xcal"].to(dev), ev["dcal"].to(dev), ev["ycal"].to(dev)  # CAL region
         with torch.no_grad():
-            _, H = m.forward_exact(x, dt, keep_h=True)
-            Href = H
+            _, Href = m.forward_exact(x, dt, keep_h=True)
             ref = metric_of(kind, h(Href), y)
-        hbar = H.reshape(-1, m.D).mean(0)
-        ors, sc = orders(m, x, dt, hbar, dev)
+            _, Hc = m.forward_exact(xc, dc, keep_h=True)
+        hbar = Hc.reshape(-1, m.D).mean(0)          # mean state from the calibration region
+        ors, sc = orders(m, xc, dc, hbar, dev)      # Jacobian ranking from the calibration region
         rows = {}
         with torch.no_grad():
             for rho in RHO:
@@ -307,7 +340,7 @@ def decouple_part(names, dev):
                               f"(d {met-ref:+.4f})", flush=True)
         out[name] = dict(kind=kind, task_metric=("bpd" if kind == "wiki" else "r2"),
                          reference=ref, rows=rows)
-        del m, h, Href, H, ors
+        del m, h, Href, Hc, ors
         torch.cuda.empty_cache()
     probe.stop()
     out["_memory"] = probe.as_dict()
@@ -316,55 +349,125 @@ def decouple_part(names, dev):
 
 
 def ridge_part(names, dev):
-    """closed-form refit of the readout on decoupled (rho, ordering) states, fp64 solve"""
+    """closed-form refit of the *linear* readout on decoupled states.
+
+    Everything that is fitted sees the TRAIN region only; the kernel/order choice was already
+    frozen on the calibration region; the TEST region is scored once.  The regulariser is
+    chosen on a held-out slice of *windows* (rows inside one window are correlated, so a row
+    split would leak)."""
     probe = MemProbe()
     probe.start()
     out = {}
     for name in names:
         m, h, c, ev = load(name, dev)
         kind = c["kind"]
-        x, dt, y = ev["x"].to(dev), ev["dt"].to(dev), ev["y"].to(dev)
+        x, dt, y = ev["x"].to(dev), ev["dt"].to(dev), ev["y"].to(dev)            # TEST
+        xc, dc, _ = ev["xcal"].to(dev), ev["dcal"].to(dev), ev["ycal"].to(dev)   # CAL
         with torch.no_grad():
-            _, H = m.forward_exact(x, dt, keep_h=True)
-            ref = metric_of(kind, h(H), y)
-        hbar = H.reshape(-1, m.D).mean(0)
-        ors, _ = orders(m, x, dt, hbar, dev)
+            _, Hc = m.forward_exact(xc, dc, keep_h=True)
+            _, Ht = m.forward_exact(x, dt, keep_h=True)
+            ref = metric_of(kind, h(Ht), y)
+        hbar = Hc.reshape(-1, m.D).mean(0)
+        ors, _ = orders(m, xc, dc, hbar, dev)
         rows = {}
         for rho in (0.0, 0.125, 0.25, 0.5):
             for oname in ("ours", "variance"):
                 order = ors[oname]
                 with torch.no_grad():
+                    xcf, dcf, ycf = fit_windows(kind, c, dev)
+                    Hf = state_and_pred(m, h, xcf, dcf, rho=rho, order=order, hbar=hbar)[0]
                     Hp, pp = state_and_pred(m, h, x, dt, rho=rho, order=order, hbar=hbar)
                 met0 = metric_of(kind, pp, y)
                 t0 = time.perf_counter()
-                Xd = Hp.reshape(-1, m.D)
-                t1 = time.perf_counter()
-                # closed form: ridge least squares.  For the classifier this is a *linear
-                # least-squares* head, which is not the maximum-likelihood head -- we report
-                # that honestly (it is the standard closed-form refit, and it loses to the
-                # trained softmax head; see the text).
+                X = Hf.reshape(-1, m.D).double()
                 if kind == "wiki":
-                    Y = torch.zeros(y.numel(), 256, dtype=torch.float64, device=dev)
-                    Y[torch.arange(y.numel(), device=dev), y.reshape(-1)] = 1.0
+                    yf = ycf.reshape(-1)
+                    Y = torch.zeros(yf.numel(), 256, dtype=torch.float64, device=dev)
+                    Y[torch.arange(yf.numel(), device=dev), yf] = 1.0
                 else:
-                    Y = y.reshape(-1, c["d_out"]).double()
-                A = (Hp.reshape(-1, m.D).double().t() @ Hp.reshape(-1, m.D).double())
-                lam = 1e-3 * A.diagonal().mean()
-                A = A + lam * torch.eye(m.D, dtype=torch.float64, device=dev)
-                W = torch.linalg.solve(A, Hp.reshape(-1, m.D).double().t() @ Y).t()
+                    yf = ycf.reshape(-1, c["d_out"])
+                    Y = yf.double()
+                mu_x, mu_y = X.mean(0, keepdim=True), Y.mean(0, keepdim=True)
+                Xk, Yk = X - mu_x, Y - mu_y
+                nwr = xcf.shape[0]
+                nfit = int(0.8 * nwr) * xcf.shape[1]
+                Xf, Xv = Xk[:nfit], Xk[nfit:]
+                Yf, Yv = Yk[:nfit], Yk[nfit:]
+                yfv = yf[nfit:]
+                best = (1e18, 1e-3, None)
+                for lam_s in (1e-3, 1e-2, 1e-1, 1.0, 10.0):
+                    G = Xf.t() @ Xf
+                    G = G + lam_s * G.diagonal().mean() * torch.eye(
+                        m.D, dtype=torch.float64, device=dev)
+                    Ws = torch.linalg.solve(G, Xf.t() @ Yf).t()
+                    pred = (Xv @ Ws.t()).float()
+                    sc_ = (float(F.cross_entropy(pred, yfv)) if kind == "wiki"
+                           else float(F.mse_loss(pred, yfv)))
+                    if sc_ < best[0]:
+                        best = (sc_, lam_s, Ws)
+                lam_s, W = best[1], best[2]
+                G = Xk.t() @ Xk
+                G = G + lam_s * G.diagonal().mean() * torch.eye(
+                    m.D, dtype=torch.float64, device=dev)
+                W = torch.linalg.solve(G, Xk.t() @ Yk).t()
                 solve_ms = 1e3 * (time.perf_counter() - t0)
-                logits = (Xd.double() @ W.t()).float()
+                logits = ((Hp.reshape(-1, m.D).double() - mu_x) @ W.t() + mu_y).float()
                 met1 = metric_of(kind, logits.reshape(Hp.shape[0], Hp.shape[1], -1), y)
                 rows[f"{oname}|{rho:g}"] = dict(metric_default=met0, metric_ridge=met1,
-                                                delta=met1 - met0, solve_ms=solve_ms)
+                                                delta=met1 - met0, solve_ms=solve_ms,
+                                                lam_rel=lam_s)
                 print(f"  [ridge] {name} {oname} rho={rho:g}: {met0:.4f} -> {met1:.4f} "
-                      f"({solve_ms:.1f} ms)", flush=True)
+                      f"({solve_ms:.1f} ms, lam {lam_s:g})", flush=True)
         out[name] = dict(kind=kind, reference=ref, rows=rows)
-        del m, h, H
+        del m, h, Hc, Ht
         torch.cuda.empty_cache()
     probe.stop()
     out["_memory"] = probe.as_dict()
     json.dump(out, open(f"{RES}/phase6_ridge.json", "w"), indent=1)
+    return out
+
+
+def fit_windows(kind, c, dev, n_win=None):
+    """windows used to *fit* a readout: the TRAIN region only (the test region is never used
+    for any fit), at the evaluation horizon.  The calibration region is reserved for the
+    Jacobian ranking and for DAFT, which is what the protocol in the text describes."""
+    T = c["T_eval"]
+    if kind == "wiki":
+        (b_tr, dt_tr), _, _ = split_wiki()
+        return wiki_batch(b_tr, dt_tr, n_win or 192, T, dev,
+                          gen=torch.Generator().manual_seed(21))
+    frames, _, _ = split_frames(T=T)
+    return frame_batch(frames, n_win or 96, T, dev, gen=torch.Generator().manual_seed(22))
+
+
+def split_report():
+    """provenance for the three-region protocol: sizes and boundaries of every region"""
+    out = {}
+    (b_tr, _), (b_cal, _), (b_te, _) = split_wiki()
+    n = len(b_tr) + len(b_cal) + len(b_te)
+    out["D_wiki"] = dict(total=n, regions=dict(
+        train=dict(start=0, end=len(b_tr), n=len(b_tr)),
+        cal=dict(start=len(b_tr), end=len(b_tr) + len(b_cal), n=len(b_cal)),
+        test=dict(start=len(b_tr) + len(b_cal), end=n, n=len(b_te))))
+    tr, cal, te = split_frames()
+    per = {}
+    for k in tr:
+        per[k] = dict(train=len(tr[k]), cal=len(cal[k]), test=len(te[k]))
+    out["E_sensor"] = dict(
+        total=sum(v["train"] + v["cal"] + v["test"] for v in per.values()),
+        regions=dict(train=dict(start=0, end=sum(v["train"] for v in per.values()),
+                                n=sum(v["train"] for v in per.values())),
+                     cal=dict(start=sum(v["train"] for v in per.values()),
+                              end=sum(v["train"] for v in per.values())
+                              + sum(v["cal"] for v in per.values()),
+                              n=sum(v["cal"] for v in per.values())),
+                     test=dict(start=sum(v["train"] for v in per.values())
+                               + sum(v["cal"] for v in per.values()),
+                               end=sum(v["train"] + v["cal"] + v["test"] for v in per.values()),
+                               n=sum(v["test"] for v in per.values()))),
+        per_clip=per)
+    json.dump(out, open(f"{RES}/phase6_split.json", "w"), indent=1)
+    print("split:", {k: {r: v["n"] for r, v in d["regions"].items()} for k, d in out.items()})
     return out
 
 
@@ -388,11 +491,18 @@ def daft_part(names, dev, epochs=5, steps=40, lr=1e-3):
     for name in names:
         m0, h0, c, ev = load(name, dev)
         kind = c["kind"]
-        x, dt, y = ev["x"].to(dev), ev["dt"].to(dev), ev["y"].to(dev)
+        x, dt, y = ev["x"].to(dev), ev["dt"].to(dev), ev["y"].to(dev)            # TEST
+        xc, dc, yc = ev["xcal"].to(dev), ev["dcal"].to(dev), ev["ycal"].to(dev)  # CAL
         with torch.no_grad():
-            _, H = m0.forward_exact(x, dt, keep_h=True)
-        hbar = H.reshape(-1, m0.D).mean(0)
-        ors, _ = orders(m0, x, dt, hbar, dev)
+            _, Hc = m0.forward_exact(xc, dc, keep_h=True)
+        hbar = Hc.reshape(-1, m0.D).mean(0)
+        ors, _ = orders(m0, xc, dc, hbar, dev)
+        if kind == "wiki":
+            (_, _), (bcal, dtcal), _ = split_wiki()
+            fr_cal = None
+        else:
+            _, fr_cal, _ = split_frames(T=c["T_eval"])
+            bcal = dtcal = None
         rows = {}
         for rho in (0.0625, 0.125, 0.25):
             order = ors["ours"]
@@ -402,11 +512,16 @@ def daft_part(names, dev, epochs=5, steps=40, lr=1e-3):
                 _, pp = state_and_pred(m, hd, x, dt, rho=rho, order=order, hbar=hbar)
             before = metric_of(kind, pp, y)
             opt = torch.optim.AdamW(list(m.parameters()) + list(hd.parameters()), lr=lr)
+            gen = torch.Generator().manual_seed(31)
             for ep in range(epochs):
                 for _ in range(steps):
-                    Hd, pred = state_and_pred(m, hd, x, dt, rho=rho, order=order, hbar=hbar)
-                    loss = (F.cross_entropy(pred.reshape(-1, 256), y.reshape(-1))
-                            if kind == "wiki" else F.mse_loss(pred, y))
+                    if kind == "wiki":
+                        xb, db, yb = wiki_batch(bcal, dtcal, 8, c["T_eval"], dev, gen=gen)
+                    else:
+                        xb, db, yb = frame_batch(fr_cal, 8, c["T_eval"], dev, gen=gen)
+                    Hd, pred = state_and_pred(m, hd, xb, db, rho=rho, order=order, hbar=hbar)
+                    loss = (F.cross_entropy(pred.reshape(-1, 256), yb.reshape(-1))
+                            if kind == "wiki" else F.mse_loss(pred, yb))
                     opt.zero_grad(set_to_none=True)
                     loss.backward()
                     hot_mask_grads(m, order, rho)
@@ -421,7 +536,7 @@ def daft_part(names, dev, epochs=5, steps=40, lr=1e-3):
             del m, hd
             torch.cuda.empty_cache()
         out[name] = dict(kind=kind, rows=rows)
-        del m0, h0, H
+        del m0, h0, Hc
         torch.cuda.empty_cache()
     probe.stop()
     out["_memory"] = probe.as_dict()
@@ -446,9 +561,9 @@ def hw_part(names, dev):
         else:
             x, dt = x[:8], dt[:8]
         with torch.no_grad():
-            _, H = m.forward_exact(x, dt, keep_h=True)
+            _, H = m.forward_exact(ev["xcal"][:8].to(dev), ev["dcal"][:8].to(dev), keep_h=True)
         hbar = H.reshape(-1, m.D).mean(0)
-        ors, _ = orders(m, x, dt, hbar, dev)
+        ors, _ = orders(m, ev["xcal"][:8].to(dev), ev["dcal"][:8].to(dev), hbar, dev)
         order = ors["ours"]
         pa = B4.preacts(m, x, dt)
         rows = {}
@@ -504,9 +619,9 @@ def gate_part(names, dev):
         m, h, c, ev = load(name, dev)
         x, dt = ev["x"][:4].to(dev), ev["dt"][:4].to(dev)
         with torch.no_grad():
-            _, H = m.forward_exact(x, dt, keep_h=True)
+            _, H = m.forward_exact(ev["xcal"][:8].to(dev), ev["dcal"][:8].to(dev), keep_h=True)
         hbar = H.reshape(-1, m.D).mean(0)
-        ors, _ = orders(m, x, dt, hbar, dev)
+        ors, _ = orders(m, ev["xcal"][:8].to(dev), ev["dcal"][:8].to(dev), hbar, dev)
         for oname in ("ours",):
             for rho in (0.125, 0.25):
                 order = ors[oname]
@@ -540,13 +655,14 @@ def figures(allj):
                          "axes.spines.top": False, "axes.spines.right": False})
     dec = allj.get("decouple", {})
     names = [n for n in ("D_wiki", "E_sensor") if n in dec]
-    fig, ax = plt.subplots(1, 3, figsize=(10.4, 3.0))
     colors = {"native": "#1f77b4", "ours": "#d62728", "variance": "#2ca02c",
               "random0": "#888888", "ours-picard1": "#9467bd"}
+    fig, ax = plt.subplots(1, 4, figsize=(12.6, 2.9),
+                           gridspec_kw=dict(width_ratios=[1.15, 1.15, 1.0, 1.0]))
     for i, name in enumerate(names):
         rows = dec[name]["rows"]
         kind = dec[name]["kind"]
-        lab = "BPD" if kind == "wiki" else "$R^2$"
+        lab = "held-out BPD" if kind == "wiki" else "held-out $R^2$"
         for meth, col in colors.items():
             xs, ys = [], []
             for k, v in rows.items():
@@ -555,38 +671,41 @@ def figures(allj):
                     xs.append(float(rho)); ys.append(v["metric"])
             if xs:
                 o = np.argsort(xs)
-                ax[0].plot(np.array(xs)[o], np.array(ys)[o], "o-", ms=3, color=col,
-                           label=meth if i == 0 else None,
-                           ls=("-" if i == 0 else "--"))
-        ax[0].set_xlabel(r"hot fraction $\rho$")
-        ax[0].set_ylabel(f"held-out {lab}")
-        ax[0].set_title("real streams: accuracy vs $\\rho$" if i == 0 else "")
-    ax[0].legend(frameon=False, fontsize=6.5)
+                ax[i].plot(np.array(xs)[o], np.array(ys)[o], "o-", ms=3, color=col, label=meth)
+        ref = dec[name]["reference"]
+        ax[i].axhline(ref, color="k", lw=0.8, ls="--", label="exact")
+        ax[i].set_xlabel(r"hot fraction $\rho$")
+        ax[i].set_ylabel(lab)
+        ax[i].set_title(("(a) CfC-WikiText" if kind == "wiki" else "(b) CfC-SensorTrace"),
+                        fontsize=8.5)
+        ax[i].legend(frameon=False, fontsize=6.0, ncol=2)
     hw = allj.get("hw", {})
-    for i, name in enumerate(names):
+    for name in names:
         if name not in hw:
             continue
         r = hw[name]["rows"]
         rhos = [0.125, 0.25]
         sp = [r.get(f"gpu|speedup rho={rho:g}", np.nan) for rho in rhos]
-        ax[1].plot(rhos, sp, "o-", ms=4, label=f"{name} (GPU)")
-    ax[1].axhline(1.0, color="k", lw=0.6, ls=":")
-    ax[1].set_xlabel(r"hot fraction $\rho$")
-    ax[1].set_ylabel("speedup vs best sequential")
-    ax[1].set_title("end-to-end kernel speedup")
-    ax[1].legend(frameon=False, fontsize=6.5)
-    sp = allj.get("spectrum", {})
-    for name in names:
-        if name in sp:
-            ret = sp[name]["retained"]
-            ax[2].plot(sp[name]["rho_grid"], ret, "o-", ms=3, label=f"{name} (Gini {sp[name]['gini']:.2f})")
-    ax[2].plot([0, 1], [0, 1], "k:", lw=0.8, label="$1-\\rho$ reference")
+        ax[2].plot(rhos, sp, "o-", ms=4, label=("Model D" if "wiki" in name else "Model E"))
+    ax[2].axhline(1.0, color="k", lw=0.6, ls=":")
     ax[2].set_xlabel(r"hot fraction $\rho$")
-    ax[2].set_ylabel("Jacobian energy retained")
-    ax[2].set_title("concentration on real streams")
+    ax[2].set_ylabel("speedup vs best sequential")
+    ax[2].set_title("(c) end-to-end kernel", fontsize=8.5)
     ax[2].legend(frameon=False, fontsize=6.5)
+    sp6 = allj.get("spectrum", {})
+    for name in names:
+        if name in sp6:
+            ret = sp6[name]["retained"]
+            ax[3].plot(sp6[name]["rho_grid"], ret, "o-", ms=3,
+                       label=("Model D (Gini %.2f)" if "wiki" in name else "Model E (Gini %.2f)")
+                       % sp6[name]["gini"])
+    ax[3].plot([0, 1], [0, 1], "k:", lw=0.8, label=r"$1-\rho$ reference")
+    ax[3].set_xlabel(r"hot fraction $\rho$")
+    ax[3].set_ylabel("Jacobian energy retained")
+    ax[3].set_title("(d) concentration", fontsize=8.5)
+    ax[3].legend(frameon=False, fontsize=6.5)
     fig.tight_layout()
-    fig.subplots_adjust(bottom=0.30, top=0.86, wspace=0.32)
+    fig.subplots_adjust(bottom=0.26, top=0.87, wspace=0.34)
     os.makedirs("figures", exist_ok=True)
     fig.savefig("figures/fig_realworld_benchmarks.pdf")
     fig.savefig("figures/fig_realworld_benchmarks.png", dpi=170)
@@ -616,6 +735,8 @@ def main():
             ridge_part(names, dev)
         if "all" in parts or "daft" in parts:
             daft_part(names, dev)
+        if "all" in parts or "split" in parts:
+            split_report()
         if "all" in parts or "hw" in parts:
             hw_part(names, dev)
     mem = probe.as_dict()
